@@ -1,0 +1,44 @@
+---
+import { db, Series } from 'astro:db';
+import Layout from '../layouts/default.astro';
+import { Collection } from 'astro:db';
+import { eq } from 'astro:db';
+import { Episode } from 'astro:db';
+
+const seriesData = await db
+	.select()
+	.from(Series)
+	.innerJoin(Collection, eq(Series.id, Collection.series))
+	.innerJoin(Episode, eq(Collection.id, Episode.collection));
+
+const series = seriesData.reduce<any>((acc, row) => {
+	const s = row.Series;
+	const c = row.Collection;
+	const e = row.Episode;
+
+	console.log({ s, c, e, acc });
+
+	if (!acc[s.id]) {
+		acc[s.id] = {
+			...s,
+			collections: [{ ...c, episodes: [] }],
+		};
+	}
+
+	if (
+		acc[s.id] &&
+		acc[s.id].collections.some((coll: any) => coll.id === c.id)
+	) {
+		acc[s.id].collections
+			.find((coll: any) => coll.id === c.id)
+			.episodes.push(e);
+	}
+
+	return acc;
+}, {});
+---
+
+<Layout>
+	<h1>Netflix-style app</h1>
+	<pre>{JSON.stringify(series, null, 2)}</pre>
+</Layout>
