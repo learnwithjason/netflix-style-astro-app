@@ -1,0 +1,27 @@
+---
+import { Episode } from 'astro:db';
+
+export interface Props {
+	episode: typeof Episode.$inferSelect;
+}
+
+const { episode } = Astro.props;
+---
+
+<mux-player
+	theme="classic"
+	playback-id={episode.playback_id}
+	metadata-video-title={episode.title}
+	title={episode.title}></mux-player>
+
+<script>
+	import '@mux/mux-player';
+	import '@mux/mux-player/themes/classic';
+</script>
+
+<style>
+	mux-player {
+		block-size: 100vb;
+		inline-size: 100vi;
+	}
+</style>

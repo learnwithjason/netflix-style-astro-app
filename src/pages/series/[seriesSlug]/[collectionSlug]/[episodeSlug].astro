@@ -1,0 +1,243 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { db, Series, Collection, asc, eq, Episode } from 'astro:db';
+import { format } from 'date-fns';
+import Layout from '../../../../layouts/default.astro';
+import VideoPlayer from '../../../../components/video-player.astro';
+import EpisodePreview from '../../../../components/episode-preview.astro';
+
+export const getStaticPaths = (async () => {
+	const data = await db
+		.select()
+		.from(Episode)
+		.innerJoin(Collection, eq(Episode.collection, Collection.id))
+		.innerJoin(Series, eq(Collection.series, Series.id))
+		.orderBy(asc(Episode.publish_date));
+
+	const episodeTracker: { [key: string]: Set<string> } = {};
+
+	const pages = data.map<any>((episodeData, index) => {
+		const {
+			Episode: episode,
+			Collection: collection,
+			Series: series,
+		} = episodeData;
+
+		if (!episodeTracker[collection.slug]) {
+			episodeTracker[collection.slug] = new Set<string>();
+		} else {
+			episodeTracker[collection.slug].add(episode.slug);
+		}
+
+		return {
+			params: {
+				seriesSlug: series.slug,
+				collectionSlug: collection.slug,
+				episodeSlug: episode.slug,
+			},
+			props: {
+				episode: {
+					...episode,
+					number: episodeTracker[collection.slug].size + 1,
+				},
+				series: {
+					title: series.title,
+					description: series.description,
+					banner_image: series.banner_image,
+				},
+				collection: {
+					year: collection.year,
+					name: collection.name,
+					slug: collection.slug,
+				},
+			},
+		};
+	});
+
+	return pages;
+}) satisfies GetStaticPaths;
+
+export interface Props {
+	series: Pick<
+		typeof Series.$inferSelect,
+		'title' | 'description' | 'banner_image' | 'slug'
+	>;
+	collection: Pick<typeof Collection.$inferSelect, 'name' | 'slug' | 'year'>;
+	episode: typeof Episode.$inferSelect & { number: number };
+}
+
+const { series, collection, episode } = Astro.props;
+---
+
+<Layout>
+	<VideoPlayer episode={episode} />
+	<div class="wrapper">
+		<div class="episode-details">
+			<h1>
+				{episode.title}
+			</h1>
+			<div class="episode-meta">
+				<span class="episode-number">
+					{collection.slug} E{episode.number}
+				</span>
+				<span class="episode-date">
+					{format(episode.publish_date, 'MMM d, yyyy')}
+				</span>
+			</div>
+			<p>{episode.description}</p>
+		</div>
+
+		<section>
+			<h2>People in this episode</h2>
+
+			<div class="people">
+				<div class="person">
+					<a href="#profile"
+						><img
+							src="https://images.unsplash.com/photo-1611432579699-484f7990b127?q=80&auto=format&fit=crop&w=200&h=200&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+							alt="Sandra Guest"
+						/></a
+					>
+					<h4><a href="#profile">Srushtika Neelakantam</a></h4>
+				</div>
+
+				<div class="person">
+					<a href="#profile"
+						><img
+							src="https://images.unsplash.com/photo-1611432579699-484f7990b127?q=80&auto=format&fit=crop&w=200&h=200&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+							alt="Sandra Guest"
+						/></a
+					>
+					<h4><a href="#profile">Person Name</a></h4>
+				</div>
+			</div>
+		</section>
+
+		<section>
+			<h2>More episodes in this series</h2>
+
+			<div class="more-episodes">
+				<EpisodePreview
+					class="compact"
+					episode={episode}
+					episodeNumber={`${collection.slug} E${episode.number}`}
+					episodeUrl={`/series/${series.slug}/${collection.slug}/${episode.slug}`}
+				/>
+				<EpisodePreview
+					class="compact"
+					episode={episode}
+					episodeNumber={`${collection.slug} E${episode.number}`}
+					episodeUrl={`/series/${series.slug}/${collection.slug}/${episode.slug}`}
+				/>
+				<EpisodePreview
+					class="compact"
+					episode={episode}
+					episodeNumber={`${collection.slug} E${episode.number}`}
+					episodeUrl={`/series/${series.slug}/${collection.slug}/${episode.slug}`}
+				/>
+				<EpisodePreview
+					class="compact"
+					episode={episode}
+					episodeNumber={`${collection.slug} E${episode.number}`}
+					episodeUrl={`/series/${series.slug}/${collection.slug}/${episode.slug}`}
+				/>
+				<EpisodePreview
+					class="compact"
+					episode={episode}
+					episodeNumber={`${collection.slug} E${episode.number}`}
+					episodeUrl={`/series/${series.slug}/${collection.slug}/${episode.slug}`}
+				/>
+			</div>
+		</section>
+
+		<section>
+			<h2>Episode credits</h2>
+		</section>
+	</div>
+</Layout>
+
+<style>
+	.wrapper {
+		padding: 2rem max(calc((100cqw - 1024px) / 2), 5cqw) 4rem;
+	}
+
+	.episode-details {
+		& h1 {
+			font-family: mallory-medium;
+			font-size: 0.875rem;
+			line-height: 1.1;
+			margin-block: 0.25rem;
+		}
+
+		& p {
+			font-size: 0.75rem;
+			line-height: 1.25;
+		}
+	}
+
+	.episode-meta {
+		display: flex;
+		font-family: mallory-light;
+		font-size: 0.75rem;
+		gap: 0.5rem;
+		margin-block: 0.25rem;
+	}
+
+	.episode-number {
+		font-family: mallory-medium;
+		text-transform: uppercase;
+	}
+
+	section {
+		margin-block-start: 3rem;
+
+		& h2 {
+			font-family: mallory-book;
+			font-size: 0.875rem;
+			line-height: 1.1;
+			margin-block: 0.25rem;
+		}
+	}
+
+	.people {
+		display: flex;
+		gap: 1rem;
+		margin-block-start: 1rem;
+	}
+
+	.person {
+		inline-size: 120px;
+
+		& img {
+			block-size: auto;
+			border-radius: 50%;
+			display: block;
+			inline-size: 90px;
+			margin-inline: auto;
+		}
+
+		& h4 {
+			font-family: mallory-book;
+			font-size: 0.675rem;
+			font-weight: normal;
+			line-height: 1.1;
+			margin-block-start: 0.25rem;
+			text-align: center;
+
+			& a {
+				color: inherit;
+				text-decoration: none;
+
+				&:is(:hover, :focus) {
+					text-decoration: underline;
+				}
+			}
+		}
+	}
+
+	.more-episodes {
+		display: flex;
+		gap: 2rem;
+		margin-block-start: 1rem;
+	}
+</style>

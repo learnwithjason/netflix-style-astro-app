@@ -18,7 +18,7 @@ const Collection = defineTable({
 		name: column.text(),
 		slug: column.text(),
 		// collection name
-		// TODO do we need description, hosts, etc.?
+		// TODO do we need hosts, etc.?
 	},
 });
 
@@ -34,6 +34,7 @@ const Episode = defineTable({
 		thumbnail: column.text(),
 		youtube_id: column.text({ optional: true }),
 		media_url: column.text({ optional: true }),
+		playback_id: column.text({ optional: true }),
 	},
 });
 
