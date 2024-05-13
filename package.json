@@ -10,8 +10,9 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/check": "^0.5.10",
-    "@astrojs/db": "^0.9.4",
+    "@astrojs/check": "^0.6.0",
+    "@astrojs/db": "^0.11.1",
+    "@astrojs/netlify": "^5.2.1",
     "@astrojs/react": "^3.3.2",
     "@mux/mux-player": "^2.6.0",
     "@mux/mux-player-react": "^2.6.0",
@@ -19,9 +20,11 @@
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.0",
     "astro": "^4.5.9",
+    "astro-clerk-auth": "^0.6.0",
     "date-fns": "^3.6.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "typescript": "^5.4.3"
+    "typescript": "^5.4.3",
+    "zod": "^3.23.8"
   }
 }
