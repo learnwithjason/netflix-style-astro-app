@@ -1,72 +1,50 @@
 ---
 import type { GetStaticPaths } from 'astro';
-import { db, Series, Collection, asc, eq, Episode } from 'astro:db';
 import { format } from 'date-fns';
 import Layout from '../../../../layouts/default.astro';
 import VideoPlayer from '../../../../components/video-player.astro';
 import EpisodePreview from '../../../../components/episode-preview.astro';
+import { getCollections } from '../../../../../db/interface';
 
 export const getStaticPaths = (async () => {
-	const data = await db
-		.select()
-		.from(Episode)
-		.innerJoin(Collection, eq(Episode.collection, Collection.id))
-		.innerJoin(Series, eq(Collection.series, Series.id))
-		.orderBy(asc(Episode.publish_date));
+	const collections = await getCollections();
 
-	const episodeTracker: { [key: string]: Set<string> } = {};
+	return collections.flatMap((collection) => {
+		return collection.resources.map((episode) => {
+			if (!collection.parent || !collection.parent.fields) {
+				return { params: {} };
+			}
 
-	const pages = data.map<any>((episodeData, index) => {
-		const {
-			Episode: episode,
-			Collection: collection,
-			Series: series,
-		} = episodeData;
+			// get 5 related episodes, if available
+			const currPos = episode.position;
+			const maxPos = collection.resources.length - 1;
+			const endPos = Math.min(currPos + 2, maxPos);
+			const startPos = Math.max(endPos - 5, 0);
 
-		if (!episodeTracker[collection.slug]) {
-			episodeTracker[collection.slug] = new Set<string>();
-		} else {
-			episodeTracker[collection.slug].add(episode.slug);
-		}
+			const relatedEpisodes = collection.resources
+				.filter((e) => e.id !== episode.id)
+				.slice(startPos, endPos);
 
-		return {
-			params: {
-				seriesSlug: series.slug,
-				collectionSlug: collection.slug,
-				episodeSlug: episode.slug,
-			},
-			props: {
-				episode: {
-					...episode,
-					number: episodeTracker[collection.slug].size + 1,
+			return {
+				params: {
+					seriesSlug: collection.parent.fields.slug,
+					collectionSlug: collection.fields.slug,
+					episodeSlug: episode.fields.slug,
 				},
-				series: {
-					title: series.title,
-					description: series.description,
-					banner_image: series.banner_image,
+				props: {
+					collection: collection.fields,
+					series: collection.parent.fields,
+					episode: episode.fields,
+					relatedEpisodes,
+					episodeNumber: episode.position + 1,
 				},
-				collection: {
-					year: collection.year,
-					name: collection.name,
-					slug: collection.slug,
-				},
-			},
-		};
+			};
+		});
 	});
-
-	return pages;
 }) satisfies GetStaticPaths;
 
-export interface Props {
-	series: Pick<
-		typeof Series.$inferSelect,
-		'title' | 'description' | 'banner_image' | 'slug'
-	>;
-	collection: Pick<typeof Collection.$inferSelect, 'name' | 'slug' | 'year'>;
-	episode: typeof Episode.$inferSelect & { number: number };
-}
-
-const { series, collection, episode } = Astro.props;
+const { series, collection, episode, episodeNumber, relatedEpisodes } =
+	Astro.props;
 ---
 
 <Layout>
@@ -78,7 +56,7 @@ const { series, collection, episode } = Astro.props;
 			</h1>
 			<div class="episode-meta">
 				<span class="episode-number">
-					{collection.slug} E{episode.number}
+					{collection.slug} E{episodeNumber}
 				</span>
 				<span class="episode-date">
 					{format(episode.publish_date, 'MMM d, yyyy')}
@@ -113,42 +91,24 @@ const { series, collection, episode } = Astro.props;
 			</div>
 		</section>
 
-		<section>
-			<h2>More episodes in this series</h2>
+		{
+			relatedEpisodes.length > 0 ? (
+				<section>
+					<h2>More episodes in this series</h2>
 
-			<div class="more-episodes">
-				<EpisodePreview
-					class="compact"
-					episode={episode}
-					episodeNumber={`${collection.slug} E${episode.number}`}
-					episodeUrl={`/series/${series.slug}/${collection.slug}/${episode.slug}`}
-				/>
-				<EpisodePreview
-					class="compact"
-					episode={episode}
-					episodeNumber={`${collection.slug} E${episode.number}`}
-					episodeUrl={`/series/${series.slug}/${collection.slug}/${episode.slug}`}
-				/>
-				<EpisodePreview
-					class="compact"
-					episode={episode}
-					episodeNumber={`${collection.slug} E${episode.number}`}
-					episodeUrl={`/series/${series.slug}/${collection.slug}/${episode.slug}`}
-				/>
-				<EpisodePreview
-					class="compact"
-					episode={episode}
-					episodeNumber={`${collection.slug} E${episode.number}`}
-					episodeUrl={`/series/${series.slug}/${collection.slug}/${episode.slug}`}
-				/>
-				<EpisodePreview
-					class="compact"
-					episode={episode}
-					episodeNumber={`${collection.slug} E${episode.number}`}
-					episodeUrl={`/series/${series.slug}/${collection.slug}/${episode.slug}`}
-				/>
-			</div>
-		</section>
+					<div class="more-episodes">
+						{relatedEpisodes.map((related) => (
+							<EpisodePreview
+								class="compact"
+								episode={related.fields}
+								episodeNumber={`${collection.slug} E${related.position + 1}`}
+								episodeUrl={`/series/${series.slug}/${collection.slug}/${related.fields.slug}`}
+							/>
+						))}
+					</div>
+				</section>
+			) : null
+		}
 
 		<section>
 			<h2>Episode credits</h2>

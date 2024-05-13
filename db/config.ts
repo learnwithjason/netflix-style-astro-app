@@ -1,4 +1,31 @@
-import { column, defineDb, defineTable } from 'astro:db';
+import { column, defineDb, defineTable, NOW } from 'astro:db';
+
+const Resource = defineTable({
+	columns: {
+		id: column.text({ primaryKey: true }),
+		type: column.text(),
+		createdById: column.text({ references: () => User.columns.id }),
+		fields: column.json(),
+		createdAt: column.date({ default: NOW }),
+		updatedAt: column.date({ default: NOW }),
+		deletedAt: column.date({ optional: true }),
+		resources: column.json({
+			default: [],
+		}),
+	},
+});
+
+const ResourceRelationships = defineTable({
+	columns: {
+		childId: column.text({ references: () => Resource.columns.id }),
+		parentId: column.text({ references: () => Resource.columns.id }),
+		position: column.number({ default: 0 }),
+		metadata: column.json({ default: {} }),
+		createdAt: column.date({ default: NOW }),
+		updatedAt: column.date({ default: NOW }),
+		deletedAt: column.date({ optional: true }),
+	},
+});
 
 const Series = defineTable({
 	columns: {
@@ -70,6 +97,7 @@ const Sponsor = defineTable({
 	},
 });
 
+// TODO does this need to be collection?
 const SponsorSeries = defineTable({
 	columns: {
 		series: column.text({
@@ -95,13 +123,15 @@ const SponsorEpisode = defineTable({
 // https://astro.build/db/config
 export default defineDb({
 	tables: {
-		Series,
-		Collection,
-		Episode,
+		Resource,
+		ResourceRelationships,
+		// Series,
+		// Collection,
+		// Episode,
 		User,
-		Sponsor,
-		UserEpisode,
-		SponsorEpisode,
-		SponsorSeries,
+		// Sponsor,
+		// UserEpisode,
+		// SponsorEpisode,
+		// SponsorSeries,
 	},
 });

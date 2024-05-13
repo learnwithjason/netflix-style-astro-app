@@ -1,9 +1,10 @@
 ---
-import type { Episode } from 'astro:db';
+import type { z } from 'astro/zod';
+import { EpisodeFields } from '../../db/schema';
 import { format } from 'date-fns';
 
 export interface Props {
-	episode: typeof Episode.$inferSelect;
+	episode: z.infer<typeof EpisodeFields>;
 	episodeUrl: string;
 	episodeNumber: string;
 	class?: string;

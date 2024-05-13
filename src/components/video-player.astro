@@ -1,8 +1,9 @@
 ---
-import { Episode } from 'astro:db';
+import type { z } from 'astro/zod';
+import type { EpisodeFields } from '../../db/schema';
 
 export interface Props {
-	episode: typeof Episode.$inferSelect;
+	episode: z.infer<typeof EpisodeFields>;
 }
 
 const { episode } = Astro.props;
