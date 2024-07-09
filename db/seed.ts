@@ -1,5 +1,11 @@
 import { z } from 'zod';
-import { User, ResourceRelationships, Resource, db } from 'astro:db';
+import {
+	User,
+	ResourceRelationships,
+	Resource,
+	db,
+	UserResource,
+} from 'astro:db';
 import {
 	Collection as CollectionSchema,
 	Series as SeriesSchema,
@@ -267,7 +273,7 @@ export default async function seed() {
 				description:
 					"I'm challenging myself to make a video every weekday for at least two weeks to help me get over my perfectionism and just start making stuff.",
 				banner_image:
-					'https://res.cloudinary.com/jlengstorf/image/upload/f_auto,q_auto/v1711515349/lwj/series/doitanyways-banner.jpg',
+					'https://res.cloudinary.com/jlengstorf/image/upload/f_auto,q_auto/v1720411221/lwj/v2/series-do-it-anyways-cover.jpg',
 			},
 			resources: [],
 		},
@@ -370,6 +376,13 @@ export default async function seed() {
 			parentId: '27d86fbe-e27d-4fe5-a4ec-a6134495809b',
 			childId: 'd5989bab-47bb-42ed-b2da-0e718fc42a62',
 			position: 11,
+		},
+	]);
+
+	await db.insert(UserResource).values([
+		{
+			resourceId: 'e30a68aa-eedb-424e-8ece-1a0b5ae944c0',
+			userId: 'eb6f8307-9b99-4d11-9257-07a8318e01c7',
 		},
 	]);
 }

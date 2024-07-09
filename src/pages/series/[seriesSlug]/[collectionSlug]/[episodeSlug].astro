@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import Layout from '../../../../layouts/default.astro';
 import VideoPlayer from '../../../../components/video-player.astro';
 import EpisodePreview from '../../../../components/episode-preview.astro';
-import { getCollections } from '../../../../../db/interface';
+import { getCollections, getPeople } from '../../../../../db/interface';
 
 export const getStaticPaths = (async () => {
 	const collections = await getCollections();
@@ -34,7 +34,7 @@ export const getStaticPaths = (async () => {
 				props: {
 					collection: collection.fields,
 					series: collection.parent.fields,
-					episode: episode.fields,
+					episode: { id: episode.id, ...episode.fields },
 					relatedEpisodes,
 					episodeNumber: episode.position + 1,
 				},
@@ -45,6 +45,10 @@ export const getStaticPaths = (async () => {
 
 const { series, collection, episode, episodeNumber, relatedEpisodes } =
 	Astro.props;
+
+console.log({ series, collection, episode, episodeNumber, relatedEpisodes });
+
+const people = await getPeople(episode.id);
 ---
 
 <Layout>
@@ -67,6 +71,8 @@ const { series, collection, episode, episodeNumber, relatedEpisodes } =
 
 		<section>
 			<h2>People in this episode</h2>
+
+			<pre>{JSON.stringify(people, null, 2)}</pre>
 
 			<div class="people">
 				<div class="person">

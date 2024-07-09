@@ -1,12 +1,14 @@
 ---
+import { Image } from '@unpic/astro';
 import { getSeries } from '../../db/interface';
 import Layout from '../layouts/default.astro';
+
+export const prerender = false;
 
 const series = await getSeries();
 ---
 
 <Layout>
-	<h1>Netflix-style app</h1>
 	<section class="series-list">
 		{
 			series.map((series) => {
@@ -15,7 +17,12 @@ const series = await getSeries();
 						<a
 							href={`/series/${series.fields.slug}/${series.resources.at(0).fields.slug}`}
 						>
-							<img src={series.fields.banner_image} alt={series.fields.title} />
+							<Image
+								src={series.fields.banner_image}
+								alt={series.fields.title}
+								aspectRatio={16 / 9}
+								layout="fullWidth"
+							/>
 						</a>
 						<h2>
 							<a

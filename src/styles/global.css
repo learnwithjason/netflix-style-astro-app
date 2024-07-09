@@ -4,9 +4,19 @@
 }
 
 :root {
+	--white: oklch(100% 0 89.88);
+	--gray-000: oklch(16.13% 0.08 291.17);
+	--gray-400: oklch(17.7% 0.105 262.48);
+	--gray-500: oklch(20.78% 0.093 290.98);
+	--gray-600: oklch(37.69% 0.072 297.8);
+
 	font-family: mallory-book, system-ui, sans-serif;
 	font-size: 18px;
 	line-height: 1.45;
+}
+
+body {
+	margin: 0;
 }
 
 :is(h1, h2, h3, h4, h5, h6) {

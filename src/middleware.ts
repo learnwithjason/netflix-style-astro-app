@@ -1,3 +1,13 @@
-import { clerkMiddleware } from 'astro-clerk-auth/server';
+import { clerkMiddleware, createRouteMatcher } from 'astro-clerk-auth/server';
 
-export const onRequest = clerkMiddleware();
+const isProtectedPage = createRouteMatcher([
+	/^(?!.*\/(?:sign-up|sign-in)\/?$)\/dashboard.*$/,
+]);
+
+export const onRequest = clerkMiddleware((auth, context, next) => {
+	if (isProtectedPage(context.request) && !auth().userId) {
+		return auth().redirectToSignIn();
+	}
+
+	return next();
+});

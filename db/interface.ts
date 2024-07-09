@@ -1,4 +1,13 @@
-import { db, sql, Resource, ResourceRelationships } from 'astro:db';
+import {
+	db,
+	sql,
+	Resource,
+	ResourceRelationships,
+	eq,
+	alias,
+	UserResource,
+	User,
+} from 'astro:db';
 import { Collection, Series } from './schema';
 
 async function getResources(type: 'series' | 'collection') {
@@ -66,8 +75,32 @@ async function getResources(type: 'series' | 'collection') {
 			(a: any, b: any) => a.position - b.position,
 		);
 
+		// console.log(JSON.stringify(resource, null, 2));
+
 		return resource;
 	});
+}
+
+export async function getPeople(episodeId: string) {
+	const result = await db
+		.select({
+			id: User.id,
+			username: User.username,
+			display_name: User.display_name,
+			bio: User.bio,
+			avatar_url: User.avatar_url,
+			twitter_url: User.twitter_url,
+			instagram_url: User.instagram_url,
+			youtube_url: User.youtube_url,
+			linkedin_url: User.linkedin_url,
+			github_url: User.github_url,
+			website_url: User.website_url,
+		})
+		.from(UserResource)
+		.leftJoin(User, eq(UserResource.userId, User.id))
+		.where(eq(UserResource.resourceId, episodeId));
+
+	return result;
 }
 
 export async function getSeries() {
@@ -98,4 +131,47 @@ export async function getCollections() {
 
 		return collection;
 	});
+}
+
+export async function selectTest() {
+	const children = alias(Resource, 'children');
+	const data = await db
+		.select({
+			resource: Resource,
+			children: children,
+		})
+		.from(Resource)
+		.leftJoin(
+			ResourceRelationships,
+			eq(ResourceRelationships.parentId, Resource.id),
+		)
+		.leftJoin(children, eq(ResourceRelationships.childId, children.id))
+		.leftJoin(UserResource, eq(children.id, UserResource.resourceId))
+		.where(eq(Resource.type, 'collection'))
+		.all();
+
+	const result = data.reduce<
+		Record<
+			string,
+			{
+				resource: typeof Resource.$inferSelect;
+				children: Array<typeof Resource.$inferSelect>;
+			}
+		>
+	>((acc, row) => {
+		const resource = row.resource;
+		const child = row.children;
+
+		if (!acc[resource.id]) {
+			acc[resource.id] = { resource, children: [] };
+		}
+
+		if (child) {
+			acc[resource.id].children.push(child);
+		}
+
+		return acc;
+	}, {});
+
+	return result;
 }

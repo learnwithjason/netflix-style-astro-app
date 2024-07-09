@@ -22,7 +22,7 @@ const { class: className, episode, episodeUrl, episodeNumber } = Astro.props;
 			{episodeNumber}
 		</span>
 		<span class="episode-date">
-			{format(episode.publish_date, 'MMM d, yyyy')}
+			{format(new Date(episode.publish_date), 'MMM d, yyyy')}
 		</span>
 		{/* TODO: fix hard-coded date */}
 		<span class="episode-length">3m</span>
