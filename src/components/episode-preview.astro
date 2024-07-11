@@ -1,5 +1,6 @@
 ---
 import type { z } from 'astro/zod';
+import { Image } from '@unpic/astro';
 import { EpisodeFields } from '../../db/schema';
 import { format } from 'date-fns';
 
@@ -15,16 +16,21 @@ const { class: className, episode, episodeUrl, episodeNumber } = Astro.props;
 
 <div class:list={['episode', className]}>
 	<a href={episodeUrl}>
-		<img src={episode.thumbnail} alt={episode.title} />
+		<Image
+			src={episode.thumbnail}
+			alt={episode.title}
+			width={340}
+			height={190}
+		/>
 	</a>
 	<div class="episode-meta">
 		<span class="episode-number">
 			{episodeNumber}
 		</span>
 		<span class="episode-date">
-			{format(new Date(episode.publish_date), 'MMM d, yyyy')}
+			{format(episode.publish_date, 'MMM d, yyyy')}
 		</span>
-		{/* TODO: fix hard-coded date */}
+		{/* TODO: fix hard-coded length */}
 		<span class="episode-length">3m</span>
 	</div>
 	<h2>

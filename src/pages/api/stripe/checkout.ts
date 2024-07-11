@@ -6,6 +6,8 @@ const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY!);
 export const POST: APIRoute = async ({ request, locals }) => {
 	const userId = locals.auth().userId;
 
+	console.log({ userId });
+
 	if (!userId) {
 		return new Response(null, {
 			status: 401,
@@ -14,9 +16,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
 	}
 
 	const data = await request.formData();
-	const priceId = data.get('priceId') as string;
+	const price = data.get('priceId') as string;
 
-	if (!priceId) {
+	if (!price) {
 		// TODO what's the right HTTP code here?
 		return new Response(null, {
 			status: 404,
@@ -29,15 +31,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
 	const session = await stripe.checkout.sessions.create({
 		success_url: url.toString(),
-		line_items: [
-			{
-				price: priceId,
-				quantity: 1,
-			},
-		],
-		metadata: {
-			userId,
-		},
+		line_items: [{ price, quantity: 1 }],
+		metadata: { userId, test: 'value' },
 		mode: 'subscription',
 	});
 

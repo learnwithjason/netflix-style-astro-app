@@ -1,72 +1,38 @@
 ---
-import type { GetStaticPaths } from 'astro';
 import { format } from 'date-fns';
 import Layout from '../../../../layouts/default.astro';
 import VideoPlayer from '../../../../components/video-player.astro';
 import EpisodePreview from '../../../../components/episode-preview.astro';
-import { getCollections, getPeople } from '../../../../../db/interface';
 
-export const getStaticPaths = (async () => {
-	const collections = await getCollections();
+const { seriesSlug, collectionSlug, episodeSlug } = Astro.params;
 
-	return collections.flatMap((collection) => {
-		return collection.resources.map((episode) => {
-			if (!collection.parent || !collection.parent.fields) {
-				return { params: {} };
-			}
+const api = new URL(Astro.request.url);
+api.pathname = `/api/series/${seriesSlug}/${collectionSlug}/${episodeSlug}`;
 
-			// get 5 related episodes, if available
-			const currPos = episode.position;
-			const maxPos = collection.resources.length - 1;
-			const endPos = Math.min(currPos + 2, maxPos);
-			const startPos = Math.max(endPos - 5, 0);
+const result = (await fetch(api)) as any;
+const { fields, position, series, collection } = await result.json();
 
-			const relatedEpisodes = collection.resources
-				.filter((e) => e.id !== episode.id)
-				.slice(startPos, endPos);
-
-			return {
-				params: {
-					seriesSlug: collection.parent.fields.slug,
-					collectionSlug: collection.fields.slug,
-					episodeSlug: episode.fields.slug,
-				},
-				props: {
-					collection: collection.fields,
-					series: collection.parent.fields,
-					episode: { id: episode.id, ...episode.fields },
-					relatedEpisodes,
-					episodeNumber: episode.position + 1,
-				},
-			};
-		});
-	});
-}) satisfies GetStaticPaths;
-
-const { series, collection, episode, episodeNumber, relatedEpisodes } =
-	Astro.props;
-
-console.log({ series, collection, episode, episodeNumber, relatedEpisodes });
-
-const people = await getPeople(episode.id);
+// TODO get related episodes and people
+const relatedEpisodes: any[] = [];
+const people: any[] = [];
 ---
 
 <Layout>
-	<VideoPlayer episode={episode} />
+	<VideoPlayer playbackId={fields.playback_id} title={fields.title} />
 	<div class="wrapper">
 		<div class="episode-details">
 			<h1>
-				{episode.title}
+				{fields.title}
 			</h1>
 			<div class="episode-meta">
 				<span class="episode-number">
-					{collection.slug} E{episodeNumber}
+					{collection.slug} E{position}
 				</span>
 				<span class="episode-date">
-					{format(episode.publish_date, 'MMM d, yyyy')}
+					{format(fields.publish_date, 'MMM d, yyyy')}
 				</span>
 			</div>
-			<p>{episode.description}</p>
+			<p>{fields.description}</p>
 		</div>
 
 		<section>

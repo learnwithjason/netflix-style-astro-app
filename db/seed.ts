@@ -31,7 +31,6 @@ export default async function seed() {
 					'https://res.cloudinary.com/jlengstorf/image/upload/f_auto,q_auto/v1711474595/lwj/series/mar-27-collaboration.jpg',
 				resources: [],
 			},
-			resources: [],
 		},
 		{
 			id: 'd64a3d40-960c-430e-9d46-5bcbb6d91cbe',
@@ -49,7 +48,6 @@ export default async function seed() {
 					'https://res.cloudinary.com/jlengstorf/image/upload/f_auto,q_auto/v1711474595/lwj/series/mar-25-smoothies.jpg',
 				resources: [],
 			},
-			resources: [],
 		},
 		{
 			id: '63e9ba7c-4740-49e7-9007-fa8fe675b279',
@@ -67,7 +65,6 @@ export default async function seed() {
 					'https://res.cloudinary.com/jlengstorf/image/upload/f_auto,q_auto/v1711474843/lwj/series/mar-22-no-ragrets.jpg',
 				resources: [],
 			},
-			resources: [],
 		},
 		{
 			id: '36bd74c6-b88a-404d-ad9c-5a1bc70da31c',
@@ -84,7 +81,6 @@ export default async function seed() {
 					'https://res.cloudinary.com/jlengstorf/image/upload/q_auto,f_auto/v1711522522/lwj/series/mar-21-deliberate-practice.jpg',
 				resources: [],
 			},
-			resources: [],
 		},
 		{
 			id: '8fcdd8a5-c3a8-4714-91c7-4c048c07b6db',
@@ -100,7 +96,6 @@ export default async function seed() {
 					'https://res.cloudinary.com/jlengstorf/image/upload/f_auto,q_auto/v1711522528/lwj/series/mar-20-if-you-go-looking-for-it.jpg',
 				resources: [],
 			},
-			resources: [],
 		},
 		{
 			id: 'e30a68aa-eedb-424e-8ece-1a0b5ae944c0',
@@ -117,7 +112,6 @@ export default async function seed() {
 					'https://res.cloudinary.com/jlengstorf/image/upload/f_auto,q_auto/v1711522524/lwj/series/mar-19-cruel-universe.jpg',
 				resources: [],
 			},
-			resources: [],
 		},
 		{
 			id: '01d02352-0e1a-4912-aef1-60ed3a41e152',
@@ -133,7 +127,6 @@ export default async function seed() {
 					'https://res.cloudinary.com/jlengstorf/image/upload/f_auto,q_auto/v1711522525/lwj/series/mar-18-the-good-parts.jpg',
 				resources: [],
 			},
-			resources: [],
 		},
 		{
 			id: '6439c27b-f433-4e3c-994f-4a18fe4063cd',
@@ -149,7 +142,6 @@ export default async function seed() {
 					'https://res.cloudinary.com/jlengstorf/image/upload/f_auto,q_auto/v1711522523/lwj/series/mar-15-quiet-days.jpg',
 				resources: [],
 			},
-			resources: [],
 		},
 		{
 			id: 'e55518de-04f9-4c0d-b352-8b4ff1041d0d',
@@ -166,7 +158,6 @@ export default async function seed() {
 					'https://res.cloudinary.com/jlengstorf/image/upload/f_auto,q_auto/v1711522524/lwj/series/mar-14-connections.jpg',
 				resources: [],
 			},
-			resources: [],
 		},
 		{
 			id: 'e16b1907-7fb3-4dbe-a4bf-b720e5c23861',
@@ -183,7 +174,6 @@ export default async function seed() {
 					'https://res.cloudinary.com/jlengstorf/image/upload/f_auto,q_auto/v1711522526/lwj/series/mar-13-insecure.jpg',
 				resources: [],
 			},
-			resources: [],
 		},
 		{
 			id: 'ca0f39dd-1dfb-4f43-a2b9-09e34d25b527',
@@ -200,7 +190,6 @@ export default async function seed() {
 					'https://res.cloudinary.com/jlengstorf/image/upload/f_auto,q_auto/v1711522527/lwj/series/mar-12-not-passion.jpg',
 				resources: [],
 			},
-			resources: [],
 		},
 		{
 			id: 'b42c4cdf-8e95-4e5d-9b2b-0d3343360688',
@@ -217,7 +206,6 @@ export default async function seed() {
 					'https://res.cloudinary.com/jlengstorf/image/upload/f_auto,q_auto/v1711522588/lwj/series/mar-11-make-time.jpg',
 				resources: [],
 			},
-			resources: [],
 		},
 		{
 			id: '70048c26-37ab-497f-aeeb-cef60bbddb79',
@@ -233,7 +221,6 @@ export default async function seed() {
 					'https://res.cloudinary.com/jlengstorf/image/upload/f_auto,q_auto/v1711474843/lwj/series/mar-22-no-ragrets.jpg',
 				resources: [],
 			},
-			resources: [],
 		},
 	];
 
@@ -247,7 +234,6 @@ export default async function seed() {
 				name: 'Season 1',
 				slug: 's1',
 			},
-			resources: [],
 		},
 		{
 			id: '51dfd049-66f5-4090-917d-f8ca93fb7225',
@@ -258,7 +244,6 @@ export default async function seed() {
 				name: '2024',
 				slug: '2024',
 			},
-			resources: [],
 		},
 	];
 
@@ -275,7 +260,6 @@ export default async function seed() {
 				banner_image:
 					'https://res.cloudinary.com/jlengstorf/image/upload/f_auto,q_auto/v1720411221/lwj/v2/series-do-it-anyways-cover.jpg',
 			},
-			resources: [],
 		},
 		{
 			id: '21cb46ea-b7de-426a-83ee-43ac0a64d776',
@@ -288,7 +272,32 @@ export default async function seed() {
 				banner_image:
 					'https://res.cloudinary.com/jlengstorf/image/upload/f_auto,q_auto/v1711474384/lwj/series/lwj-banner.jpg',
 			},
-			resources: [],
+		},
+		{
+			id: '295fe650-6927-4d12-83ac-139b7701fc5b',
+			createdById: 'eb6f8307-9b99-4d11-9257-07a8318e01c7',
+			type: 'series',
+			fields: {
+				title: 'Web Dev Challenge',
+				slug: 'web-dev-challenge',
+				description:
+					'What could you create if you had 30 minutes to plan and 4 hours to build?',
+				banner_image:
+					'https://res.cloudinary.com/jlengstorf/image/upload/f_auto,q_auto/v1719209813/wdc/web-dev-challenge-ai-app-not-another-chatbot-v5.jpg',
+			},
+		},
+		{
+			id: 'e19012fd-588f-47e7-83dd-ca2fa5e127b9',
+			createdById: 'eb6f8307-9b99-4d11-9257-07a8318e01c7',
+			type: 'series',
+			fields: {
+				title: 'Web Lunch',
+				slug: 'web-lunch',
+				description:
+					'Conversations about building a resilient, successful, happy career in tech — shared over a meal.',
+				banner_image:
+					'https://res.cloudinary.com/jlengstorf/image/upload/q_auto,f_auto/v1720490994/web-lunch/web-lunch-salma-v2.jpg',
+			},
 		},
 	];
 
@@ -306,6 +315,18 @@ export default async function seed() {
 	await db.insert(ResourceRelationships).values([
 		{
 			parentId: '177c600c-47bd-4592-8f34-6e4fe8c21821',
+			childId: '27d86fbe-e27d-4fe5-a4ec-a6134495809b',
+		},
+
+		// TODO this is WDC temp using another collection
+		{
+			parentId: '295fe650-6927-4d12-83ac-139b7701fc5b',
+			childId: '27d86fbe-e27d-4fe5-a4ec-a6134495809b',
+		},
+
+		// TODO this is Web Lunch temp using another collection
+		{
+			parentId: 'e19012fd-588f-47e7-83dd-ca2fa5e127b9',
 			childId: '27d86fbe-e27d-4fe5-a4ec-a6134495809b',
 		},
 		{

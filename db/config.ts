@@ -9,9 +9,6 @@ const Resource = defineTable({
 		createdAt: column.date({ default: NOW }),
 		updatedAt: column.date({ default: NOW }),
 		deletedAt: column.date({ optional: true }),
-		resources: column.json({
-			default: [],
-		}),
 	},
 });
 

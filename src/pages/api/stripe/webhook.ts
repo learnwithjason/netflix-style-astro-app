@@ -45,28 +45,41 @@ export const POST: APIRoute = async (context) => {
 	}
 
 	switch (event.type) {
-		case 'customer.subscription.updated':
+		case 'checkout.session.completed':
 			const session = event.data.object;
-			console.log(session);
-			// TODO fix
-			const productId = session.plan.product;
+			const subscriptionId = session.subscription as string;
+			const userId = session.metadata?.userId as string;
+
+			if (!subscriptionId || !userId) {
+				return new Response(null, {
+					status: 500,
+					statusText: 'missing required data',
+				});
+			}
+
+			const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+			const productId = subscription.plan.product;
 			const product = await stripe.products.retrieve(productId);
-			console.log(JSON.stringify(product.status, null, 2));
 
-			console.log(event.data.object.metadata.userId);
+			console.log(product);
 
-			await clerkClient(context).users.updateUserMetadata(
-				event.data.object.metadata.userId,
-				{
-					publicMetadata: {
-						stripe: {
-							status: session.status,
-							// This is where we get "paid"
-							plan: product.metadata.level,
-						},
+			// attach the Clerk ID to the Stripe customer
+			await stripe.customers.update(subscription.customer as string, {
+				metadata: {
+					userId: userId,
+				},
+			});
+
+			// attach the Stripe ID and current plan details to the Clerk user
+			await clerkClient(context).users.updateUserMetadata(userId, {
+				publicMetadata: {
+					stripe: {
+						customer: subscription.customer,
+						status: subscription.status,
+						level: product.name,
 					},
 				},
-			);
+			});
 			break;
 
 		default:

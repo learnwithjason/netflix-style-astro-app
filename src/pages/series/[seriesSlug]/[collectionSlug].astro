@@ -9,7 +9,7 @@ const { seriesSlug, collectionSlug } = Astro.params;
 api.pathname = `/api/series/${seriesSlug}/${collectionSlug}`;
 
 const result = (await fetch(api)) as any;
-const { collection, series, episodes } = await result.json();
+const { fields, series, episodes } = await result.json();
 ---
 
 <Layout>
@@ -30,23 +30,21 @@ const { collection, series, episodes } = await result.json();
 			<p>{series.fields.description}</p>
 			<button class="play-episode button">Start watching</button>
 		</div>
-		<img src={series.fields.thumbnail} alt={series.fields.title} />
+		<img src={series.fields.banner_image} alt={series.fields.title} />
 	</header>
 
 	<section class="collection">
 		<div class="collection-info">
 			<select>
-				<option value={collection.fields.slug} selected
-					>{collection.fields.name}</option
-				>
+				<option value={fields.slug} selected>{fields.name}</option>
 			</select>
 			<p class="year">
-				Release year: {format(collection.fields.release_year, 'yyyy')}
+				Release year: {format(fields.release_year, 'yyyy')}
 			</p>
 		</div>
 		<div class="episodes">
 			{
-				episodes.map((ep, index) => {
+				episodes.map((ep: any) => {
 					const episode = ep.fields;
 
 					if (!episode || !episode.slug) {
@@ -55,8 +53,8 @@ const { collection, series, episodes } = await result.json();
 					return (
 						<EpisodePreview
 							episode={episode}
-							episodeNumber={`${collection.fields.slug} E${ep.position + 1}`}
-							episodeUrl={`/series/${series.fields.slug}/${collection.fields.slug}/${episode.slug}`}
+							episodeNumber={`${fields.slug} E${ep.position + 1}`}
+							episodeUrl={`/series/${series.fields.slug}/${fields.slug}/${episode.slug}`}
 						/>
 					);
 				})

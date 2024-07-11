@@ -3,7 +3,15 @@ import Layout from '../../layouts/default.astro';
 
 export const prerender = false;
 
+type Subscription = {
+	status: 'active';
+	level: string;
+	customer: string;
+}
+
 const user = await Astro.locals.currentUser();
+const subscription = user?.publicMetadata.stripe as Subscription;
+const isSubscriber = subscription?.status === 'active';
 ---
 
 <Layout>
@@ -11,8 +19,19 @@ const user = await Astro.locals.currentUser();
 		<h1>Dashboard</h1>
 		<p>Logged in as {user.firstName} {user.lastName}.</p>
 		<img src={user.imageUrl} alt=`${user.firstName} ${user.lastName}` />
+	) : null}
 
+	{isSubscriber ? (
+		<h2>Current subscription level: {subscription.level}</h2>
+
+		<form action="/api/stripe/portal" method="POST">
+			<input type="hidden" name="customerId" value={subscription.customer} />
+			<button>manage your subscription</button>
+		</form>
+	) : (
 		<h2>Become a supporter</h2>
+		<a href="https://billing.stripe.com/p/login/test_fZe7ud2ah21Kgjm144">subscribe and support</a>
+		
 		<form action="/api/stripe/checkout" method="POST">
 			<input type="hidden" name="priceId" value="price_1PaiAnJ4VGTQR05OcgOnDj5V" />
 			<button>Become a Boop Enthusiast for $5/month</button>
@@ -22,5 +41,5 @@ const user = await Astro.locals.currentUser();
 			<input type="hidden" name="priceId" value="price_1PaiBLJ4VGTQR05OVmqMyX7O" />
 			<button>Become a Boop Connoisseur for $20/month</button>
 		</form>
-	) : null}
+	)}
 </Layout>

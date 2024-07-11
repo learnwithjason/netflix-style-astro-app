@@ -1,39 +1,69 @@
 ---
 import { Image } from '@unpic/astro';
-import { getSeries } from '../../db/interface';
 import Layout from '../layouts/default.astro';
+import { SeriesList } from '../../db/schema';
 
-export const prerender = false;
+const api = new URL(Astro.request.url);
+api.pathname = '/api/series';
 
-const series = await getSeries();
+const result = (await fetch(api)) as any;
+const data = await result.json();
+const allSeries = SeriesList.parse(data);
 ---
 
 <Layout>
-	<section class="series-list">
-		{
-			series.map((series) => {
-				return (
-					<div class="series">
-						<a
-							href={`/series/${series.fields.slug}/${series.resources.at(0).fields.slug}`}
-						>
-							<Image
-								src={series.fields.banner_image}
-								alt={series.fields.title}
-								aspectRatio={16 / 9}
-								layout="fullWidth"
-							/>
-						</a>
-						<h2>
-							<a
-								href={`/series/${series.fields.slug}/${series.resources.at(0).fields.slug}`}
-							>
-								{series.fields.title}
-							</a>
-						</h2>
-					</div>
-				);
-			})
-		}
-	</section>
+	<main>
+		<section>
+			<h2>Choose a series to watch</h2>
+			<div class="series-list">
+				{
+					allSeries.map((series) => {
+						return (
+							<div class="series">
+								<a
+									href={`/series/${series.fields.slug}/${series.collections.at(0)?.fields.slug}`}
+								>
+									<Image
+										src={series.fields.banner_image}
+										alt={series.fields.title}
+										aspectRatio={16 / 9}
+										width={600}
+									/>
+								</a>
+								<h2>
+									<a
+										href={`/series/${series.fields.slug}/${series.collections.at(0)?.fields.slug}`}
+									>
+										{series.fields.title}
+									</a>
+								</h2>
+								<p>{series.fields.description}</p>
+							</div>
+						);
+					})
+				}
+			</div>
+		</section>
+	</main>
 </Layout>
+
+<style>
+	main {
+		inline-size: min(90dvi, calc((300px + 2rem) * 4 - 2rem));
+		margin-inline: auto;
+	}
+
+	.series-list {
+		display: grid;
+		gap: 2rem;
+		grid-template-columns: repeat(auto-fit, 300px);
+
+		img {
+			border-radius: 0.25rem;
+		}
+
+		h2 {
+			font-size: 1rem;
+		}
+	}
+</style>

@@ -1,15 +1,5 @@
 import { z } from 'zod';
 
-const ResourceRelationships = z.object({
-	childId: z.string(),
-	parentId: z.string(),
-	position: z.number().default(0).optional(),
-	metadata: z.string().optional(),
-	createdAt: z.coerce.date().optional(),
-	updatedAt: z.coerce.date().optional(),
-	deletedAt: z.coerce.date().optional(),
-});
-
 const Resource = z.object({
 	id: z.string(),
 	type: z.union(
@@ -27,7 +17,6 @@ const Resource = z.object({
 		.default(new Date())
 		.optional(),
 	deletedAt: z.coerce.date({ message: 'bad deletedAt' }).optional(),
-	resources: z.array(z.any(), { message: 'bad resources' }),
 });
 
 const slug = z
@@ -98,11 +87,73 @@ export const Collection = Resource.extend({
 	type: z.literal('collection', { message: 'bad type' }),
 	fields: CollectionFields,
 	parent: Series.partial().optional(),
-	resources: z
-		.array(
-			Episode.pick({ id: true, type: true, fields: true }).extend({
-				position: z.number(),
-			}),
-		)
-		.default([]),
+});
+
+export const SeriesList = z.array(
+	Series.extend({
+		collections: z.array(
+			Collection.partial({
+				createdById: true,
+				createdAt: true,
+				deletedAt: true,
+				updatedAt: true,
+				parent: true,
+				type: true,
+			}).extend({ position: z.number() }),
+		),
+	}),
+);
+
+export const SeriesApiResult = Series.extend({
+	collections: z.array(
+		Collection.partial({
+			createdById: true,
+			createdAt: true,
+			deletedAt: true,
+			updatedAt: true,
+			parent: true,
+			type: true,
+		}).extend({ position: z.number() }),
+	),
+});
+
+export const CollectionApiResult = Collection.extend({
+	series: Series.omit({
+		createdAt: true,
+		updatedAt: true,
+		deletedAt: true,
+		createdById: true,
+		type: true,
+		parent: true,
+	}),
+	episodes: z.array(
+		Episode.extend({ position: z.number() }).omit({
+			createdById: true,
+			createdAt: true,
+			deletedAt: true,
+			updatedAt: true,
+			parent: true,
+			type: true,
+		}),
+	),
+});
+
+export const EpisodeApiResult = Episode.extend({
+	position: z.number(),
+	series: Series.omit({
+		createdAt: true,
+		updatedAt: true,
+		deletedAt: true,
+		createdById: true,
+		type: true,
+		parent: true,
+	}),
+	collection: Collection.omit({
+		createdAt: true,
+		updatedAt: true,
+		deletedAt: true,
+		createdById: true,
+		type: true,
+		parent: true,
+	}),
 });

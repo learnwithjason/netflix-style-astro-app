@@ -1,19 +1,17 @@
 ---
-import type { z } from 'astro/zod';
-import type { EpisodeFields } from '../../db/schema';
-
 export interface Props {
-	episode: z.infer<typeof EpisodeFields>;
+	playbackId: string;
+	title: string;
 }
 
-const { episode } = Astro.props;
+const { playbackId, title } = Astro.props;
 ---
 
 <mux-player
 	theme="classic"
-	playback-id={episode.playback_id}
-	metadata-video-title={episode.title}
-	title={episode.title}></mux-player>
+	playback-id={playbackId}
+	metadata-video-title={title}
+	title={title}></mux-player>
 
 <script>
 	import '@mux/mux-player';
@@ -22,7 +20,7 @@ const { episode } = Astro.props;
 
 <style>
 	mux-player {
-		block-size: 100dvb;
+		block-size: 85dvb;
 		inline-size: 100dvi;
 	}
 </style>
