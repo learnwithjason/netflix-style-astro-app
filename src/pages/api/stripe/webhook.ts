@@ -2,10 +2,6 @@ import { type APIRoute } from 'astro';
 import Stripe from 'stripe';
 import { clerkClient } from 'astro-clerk-auth/server';
 
-// const clerkClient = createClerkClient({
-// 	secretKey: import.meta.env.CLERK_SECRET_KEY,
-// });
-
 const webhookSecret = import.meta.env.STRIPE_WEBHOOK_SECRET!;
 const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY!);
 
@@ -46,22 +42,24 @@ export const POST: APIRoute = async (context) => {
 
 	switch (event.type) {
 		case 'checkout.session.completed':
-			const session = event.data.object;
-			const subscriptionId = session.subscription as string;
-			const userId = session.metadata?.userId as string;
+			const userId = event.data.object.metadata?.userId as string;
 
-			if (!subscriptionId || !userId) {
+			if (!event.data.object.subscription || !userId) {
 				return new Response(null, {
 					status: 500,
 					statusText: 'missing required data',
 				});
 			}
 
-			const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+			// const user = await context.locals.currentUser();
+			const subscription = await stripe.subscriptions.retrieve(
+				event.data.object.subscription as string,
+			);
+
+			// opened an issue for this https://github.com/stripe/stripe-node/issues/2139
+			// @ts-expect-error type appears to be incorrect
 			const productId = subscription.plan.product;
 			const product = await stripe.products.retrieve(productId);
-
-			console.log(product);
 
 			// attach the Clerk ID to the Stripe customer
 			await stripe.customers.update(subscription.customer as string, {
@@ -80,6 +78,60 @@ export const POST: APIRoute = async (context) => {
 					},
 				},
 			});
+			break;
+
+		case 'customer.subscription.updated':
+			const updatedSub = await stripe.subscriptions.retrieve(
+				event.data.object.id,
+			);
+
+			const customer = (await stripe.customers.retrieve(
+				updatedSub.customer as string,
+			)) as Stripe.Customer;
+			const updatedProduct = await stripe.products.retrieve(
+				// @ts-expect-error TS types are missing the plan
+				updatedSub.plan.product,
+			);
+
+			const clerkUserId = customer.metadata.userId;
+
+			await clerkClient(context).users.updateUserMetadata(clerkUserId, {
+				publicMetadata: {
+					stripe: {
+						customer: customer.id,
+						status: updatedSub.status,
+						level: updatedProduct.name,
+					},
+				},
+			});
+			break;
+
+		case 'customer.subscription.deleted':
+			const deletedSub = await stripe.subscriptions.retrieve(
+				event.data.object.id,
+			);
+
+			const deletedProduct = await stripe.products.retrieve(
+				// @ts-expect-error TS types are missing the plan
+				deletedSub.plan.product,
+			);
+
+			const cust = (await stripe.customers.retrieve(
+				deletedSub.customer as string,
+			)) as Stripe.Customer;
+
+			const clerkId = cust.metadata.userId;
+
+			await clerkClient(context).users.updateUserMetadata(clerkId, {
+				publicMetadata: {
+					stripe: {
+						customer: cust.id,
+						status: deletedSub.status,
+						level: deletedProduct.name,
+					},
+				},
+			});
+
 			break;
 
 		default:

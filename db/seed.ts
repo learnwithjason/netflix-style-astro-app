@@ -222,6 +222,41 @@ export default async function seed() {
 				resources: [],
 			},
 		},
+		{
+			id: '7928c019-2ceb-40ed-b3d3-bff58f7f23ce',
+			createdById: 'eb6f8307-9b99-4d11-9257-07a8318e01c7',
+			type: 'episode',
+			fields: {
+				publish_date: new Date('2024-06-26T06:00:00.000-08:00'),
+				title: 'Don’t build another effin’ chatbot',
+				description:
+					'Lizzie, Chance, Jack, and Jason create AI-powered apps that aren’t another effin’ chatbot.',
+				youtube_id: '8RCL5neas_M',
+				playback_id: '7ccyjIcr2tcEbqh1F75OF6f02nRIRQ2da7lGJPWprNLs',
+				slug: 'not-another-chatbot-datastax-astra-db',
+				thumbnail:
+					'https://res.cloudinary.com/jlengstorf/image/upload/f_auto,q_auto/v1719209813/wdc/web-dev-challenge-ai-app-not-another-chatbot-v5.jpg',
+				resources: [],
+			},
+		},
+		{
+			id: 'f443ca99-57c7-4ea4-a427-2e5b348810a3',
+			createdById: 'eb6f8307-9b99-4d11-9257-07a8318e01c7',
+			type: 'episode',
+			fields: {
+				publish_date: new Date('2024-06-26T06:00:00.000-08:00'),
+				title: 'BenQ ScreenBar Halo',
+				description: 'It’s dope.',
+				youtube_id: '',
+				// TODO set up for handling public/private IDs
+				playback_id: 'Ot1ff6Ol00r2pMXi400QJzijwHQE24ItHpAh025xLJepMo',
+				prerelease: true,
+				slug: 'benq',
+				thumbnail:
+					'https://res.cloudinary.com/jlengstorf/image/upload/f_auto,q_auto/v1719209813/wdc/web-dev-challenge-ai-app-not-another-chatbot-v5.jpg',
+				resources: [],
+			},
+		},
 	];
 
 	const collections: Array<z.infer<typeof CollectionSchema>> = [
@@ -231,6 +266,16 @@ export default async function seed() {
 			type: 'collection',
 			fields: {
 				release_year: new Date('2024-01-01T00:00:00.000-08:00'),
+				name: 'Season 1',
+				slug: 's1',
+			},
+		},
+		{
+			id: 'efc75a0e-e63d-4a8b-9d3f-404a8164c5c8',
+			createdById: 'eb6f8307-9b99-4d11-9257-07a8318e01c7',
+			type: 'collection',
+			fields: {
+				release_year: new Date('2024-06-26T06:00:00.000-08:00'),
 				name: 'Season 1',
 				slug: 's1',
 			},
@@ -307,6 +352,14 @@ export default async function seed() {
 			username: 'jlengstorf',
 			display_name: 'Jason Lengstorf',
 			bio: 'Trying his very best.',
+			avatar_url: 'https://jason.energy/headshot.jpg',
+		},
+		{
+			id: 'a4827375-5c8c-42d7-b201-097073e1b523',
+			username: 'faddahwolf',
+			display_name: 'Faddah',
+			bio: '',
+			avatar_url: 'https://avatars.githubusercontent.com/u/398378?v=4',
 		},
 	]);
 
@@ -314,14 +367,20 @@ export default async function seed() {
 
 	await db.insert(ResourceRelationships).values([
 		{
+			parentId: 'efc75a0e-e63d-4a8b-9d3f-404a8164c5c8',
+			childId: '7928c019-2ceb-40ed-b3d3-bff58f7f23ce',
+		},
+		{
+			parentId: 'efc75a0e-e63d-4a8b-9d3f-404a8164c5c8',
+			childId: 'f443ca99-57c7-4ea4-a427-2e5b348810a3',
+		},
+		{
 			parentId: '177c600c-47bd-4592-8f34-6e4fe8c21821',
 			childId: '27d86fbe-e27d-4fe5-a4ec-a6134495809b',
 		},
-
-		// TODO this is WDC temp using another collection
 		{
 			parentId: '295fe650-6927-4d12-83ac-139b7701fc5b',
-			childId: '27d86fbe-e27d-4fe5-a4ec-a6134495809b',
+			childId: 'efc75a0e-e63d-4a8b-9d3f-404a8164c5c8',
 		},
 
 		// TODO this is Web Lunch temp using another collection
@@ -402,8 +461,12 @@ export default async function seed() {
 
 	await db.insert(UserResource).values([
 		{
-			resourceId: 'e30a68aa-eedb-424e-8ece-1a0b5ae944c0',
+			resourceId: '63e9ba7c-4740-49e7-9007-fa8fe675b279',
 			userId: 'eb6f8307-9b99-4d11-9257-07a8318e01c7',
+		},
+		{
+			resourceId: '63e9ba7c-4740-49e7-9007-fa8fe675b279',
+			userId: 'a4827375-5c8c-42d7-b201-097073e1b523',
 		},
 	]);
 }

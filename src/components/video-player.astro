@@ -1,26 +1,58 @@
 ---
+import MuxVideoPlayer from './mux-video-player.astro';
+import YouTubeVideoPlayer from './youtube-video-player.astro';
+
 export interface Props {
-	playbackId: string;
-	title: string;
+	video: {
+		youtube_id?: string | null;
+		mux?: Array<{
+			id: string;
+			policy: 'public' | 'signed';
+		}> | null;
+		captions?: string | null;
+		thumbnail?: {
+			public_id: string | null;
+			alt: string | null;
+			height: number | null;
+			width: number | null;
+		} | null;
+		title: string | null;
+		publish_date: string | null;
+	};
 }
 
-const { playbackId, title } = Astro.props;
+enum VIDEO_TYPE {
+	YOUTUBE,
+	MUX,
+}
+
+const { video } = Astro.props;
+
+let type;
+if (video?.youtube_id) {
+	// YouTube IDs take precedence if they exist
+	type = VIDEO_TYPE.YOUTUBE;
+} else if (video?.mux) {
+	type = VIDEO_TYPE.MUX;
+}
 ---
 
-<mux-player
-	theme="classic"
-	playback-id={playbackId}
-	metadata-video-title={title}
-	title={title}></mux-player>
+{
+	type === VIDEO_TYPE.YOUTUBE ? (
+		<YouTubeVideoPlayer
+			youtube_id={video.youtube_id!}
+			title={video.title ?? ''}
+		/>
+	) : null
+}
 
-<script>
-	import '@mux/mux-player';
-	import '@mux/mux-player/themes/classic';
-</script>
-
-<style>
-	mux-player {
-		block-size: 85dvb;
-		inline-size: 100dvi;
-	}
-</style>
+{
+	type === VIDEO_TYPE.MUX ? (
+		<MuxVideoPlayer
+			playback_ids={video.mux!}
+			title={video.title ?? ''}
+			publish_date={video.publish_date}
+			thumbnail={video.thumbnail}
+		/>
+	) : null
+}

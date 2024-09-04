@@ -51,18 +51,14 @@ export const CollectionFields = z.object(
 	{ message: 'bad collection fields' },
 );
 
+export type CollectionFields = z.infer<typeof CollectionFields>;
+
 export const EpisodeFields = z.object(
 	{
 		slug,
 		title: z.string({ message: 'bad title' }),
 		description: z.string({ message: 'bad description' }),
-		resources: z.array(
-			z.object({
-				label: z.string({ message: 'bad label' }),
-				url: z.string({ message: 'bad url' }).url(),
-			}),
-			{ message: 'bad resources' },
-		),
+		resources: z.array(z.string({ message: 'bad resources' })).optional(),
 		thumbnail: z.string({ message: 'bad thumbnail' }).url(),
 		youtube_id: z.string({ message: 'bad youtube_id' }).optional(),
 		playback_id: z
@@ -72,10 +68,13 @@ export const EpisodeFields = z.object(
 				message: 'bad playback_id',
 			})
 			.optional(),
+		prerelease: z.boolean().default(false).optional(),
 		publish_date: z.coerce.date({ message: 'bad publish_date' }),
 	},
 	{ message: 'bad episode fields' },
 );
+
+export type EpisodeFields = z.infer<typeof EpisodeFields>;
 
 export const Episode = Resource.extend({
 	type: z.literal('episode', { message: 'bad type' }),
@@ -156,4 +155,28 @@ export const EpisodeApiResult = Episode.extend({
 		type: true,
 		parent: true,
 	}),
+});
+
+export const User = z.object({
+	id: z.string(),
+	username: z.string({ message: 'bad username' }).nullable().optional(),
+	display_name: z.string({ message: 'bad display_name' }).nullable().optional(),
+	bio: z.string({ message: 'bad bio' }).nullable().optional(),
+	avatar_url: z.string({ message: 'bad avatar_url' }).nullable().optional(),
+	twitter_url: z.string({ message: 'bad twitter_url' }).nullable().optional(),
+	instagram_url: z
+		.string({ message: 'bad instagram_url' })
+		.nullable()
+		.optional(),
+	youtube_url: z.string({ message: 'bad youtube_url' }).nullable().optional(),
+	linkedin_url: z.string({ message: 'bad linkedin_url' }).nullable().optional(),
+	github_url: z.string({ message: 'bad github_url' }).nullable().optional(),
+	website_url: z.string({ message: 'bad website_url' }).nullable().optional(),
+});
+
+export const UserList = z.array(User);
+
+export const UserResource = z.object({
+	resourceId: z.string(),
+	userId: z.string(),
 });

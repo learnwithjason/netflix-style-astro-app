@@ -1,0 +1,96 @@
+---
+import { db, Resource, eq } from 'astro:db';
+import {
+	createCollection,
+	createResourceRelationship,
+	selectSeries,
+} from '../../db/interface';
+
+const series = await selectSeries();
+
+if (Astro.request.method === 'POST') {
+	try {
+		const data = await Astro.request.formData();
+		const seriesId = data.get('series');
+		const name = data.get('name') as string;
+		const slug = data.get('slug') as string;
+		const release_year = data.get('release_year') as string;
+
+		console.log({ seriesId, name, slug, release_year });
+
+		if (!series.find((s) => s.id === seriesId)) {
+			throw new Error(`no series ${seriesId}`);
+		}
+
+		if (!name || !slug || !release_year) {
+			throw new Error('name, slug, and release year are required');
+		}
+
+		// 1. create a collection
+		const collectionId = await createCollection({
+			name,
+			slug,
+			release_year: new Date(release_year),
+		});
+
+		console.log({ collectionId });
+
+		// 2. create a resource relationship
+		if (!collectionId) {
+			throw new Error('missing collection ID');
+		}
+
+		const relationship = await createResourceRelationship({
+			parentId: seriesId as string,
+			childId: collectionId,
+		});
+
+		console.log(relationship);
+	} catch (error) {
+		console.error(error);
+	}
+}
+
+const collections = await db
+	.select()
+	.from(Resource)
+	.where(eq(Resource.type, 'collection'));
+---
+
+<form method="POST">
+	<h2>Add a Collection</h2>
+
+	<!-- TODO: connect to a series -->
+	<label for="series">What series does this collection belong to?</label>
+	<select name="series" id="series">
+		{series.map((s) => <option value={s.id}>{s.fields.title}</option>)}
+	</select>
+	<p>or <a href="#create-series">create a new series first</a></p>
+
+	<label for="name">Collection Name</label>
+	<input id="name" name="name" type="text" />
+
+	<label for="slug">Slug</label>
+	<input id="slug" name="slug" type="text" />
+
+	<label for="release_year">Release Year</label>
+	<input id="release_year" name="release_year" type="date" />
+
+	<button>Save</button>
+</form>
+
+<pre>{JSON.stringify(collections, null, 2)}</pre>
+
+<style>
+	input,
+	label,
+	button,
+	select {
+		display: block;
+	}
+
+	label,
+	button {
+		margin-block-start: 2rem;
+	}
+</style>

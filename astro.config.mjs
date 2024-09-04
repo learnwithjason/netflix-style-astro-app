@@ -19,4 +19,7 @@ export default defineConfig({
 		service: imageService(),
 	},
 	adapter: netlify(),
+	experimental: {
+		actions: true,
+	},
 });

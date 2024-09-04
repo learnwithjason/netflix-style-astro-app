@@ -1,152 +1,32 @@
+import { randomUUID } from 'node:crypto';
 import {
 	db,
 	sql,
 	Resource,
 	ResourceRelationships,
+	User,
+	UserResource,
 	eq,
 	alias,
-	UserResource,
-	User,
+	asc,
 } from 'astro:db';
 import {
-	Collection,
-	Series,
 	CollectionApiResult,
+	CollectionFields,
+	EpisodeFields,
 	EpisodeApiResult,
 	SeriesApiResult,
 	SeriesList,
+	UserList,
 } from './schema';
-
-// async function getResources(type: 'series' | 'collection') {
-// 	const result = await db.run(sql`
-//     SELECT
-//       r.id,
-//       r.type,
-//       r.fields,
-//       r.createdAt,
-//       r.updatedAt,
-//       r.deletedAt,
-//       r.createdById,
-
-//       -- return child resources as a JSON array
-//       -- TODO figure out how to sort this without double-escaping the JSON
-//       CASE
-//         WHEN child.id IS NOT NULL
-//           THEN JSON_GROUP_ARRAY(
-//               JSON_OBJECT(
-//                 'id', child.id,
-//                 'type', child.type,
-//                 'fields', JSON(child.fields),
-//                 'position', children.position
-//               )
-//             )
-//         ELSE JSON('[]')
-//       END AS resources,
-
-//       -- if a parent resource exists, return it as a JSON object (null otherwise)
-//       CASE
-//         WHEN parent.id IS NOT null
-//           THEN JSON_OBJECT(
-//             'id', parent.id,
-//             'type', parent.type,
-//             'fields', JSON(parent.fields)
-//           )
-//         ELSE null
-//       END AS parent
-
-//     FROM "Resource" AS r
-
-//     -- get any child resources
-//     LEFT JOIN "ResourceRelationships" AS children
-//       ON r.id = children.parentId
-//       LEFT JOIN "Resource" AS child
-//         ON children.childId = child.id
-
-//     -- get the parent resource, if one is set
-//     LEFT JOIN "ResourceRelationships" AS parents
-//       ON r.id = parents.childId
-//       LEFT JOIN "Resource" AS parent
-//         ON parents.parentId = parent.id
-
-//     WHERE r.type = ${type}
-//     GROUP BY r.id;
-//   `);
-
-// 	const data = result.rows;
-
-// 	return data.map((resource) => {
-// 		resource.fields = JSON.parse(resource.fields as string);
-// 		resource.parent = JSON.parse(resource.parent as string);
-// 		resource.resources = JSON.parse(resource.resources as string).sort(
-// 			// manual sort with JS because I can't figure out the SQL ORDER BY
-// 			(a: any, b: any) => a.position - b.position,
-// 		);
-
-// 		// console.log(JSON.stringify(resource, null, 2));
-
-// 		return resource;
-// 	});
-// }
-
-// export async function getPeople(episodeId: string) {
-// 	const result = await db
-// 		.select({
-// 			id: User.id,
-// 			username: User.username,
-// 			display_name: User.display_name,
-// 			bio: User.bio,
-// 			avatar_url: User.avatar_url,
-// 			twitter_url: User.twitter_url,
-// 			instagram_url: User.instagram_url,
-// 			youtube_url: User.youtube_url,
-// 			linkedin_url: User.linkedin_url,
-// 			github_url: User.github_url,
-// 			website_url: User.website_url,
-// 		})
-// 		.from(UserResource)
-// 		.leftJoin(User, eq(UserResource.userId, User.id))
-// 		.where(eq(UserResource.resourceId, episodeId));
-
-// 	return result;
-// }
-
-// export async function getSeries() {
-// 	const resources = await getResources('series');
-
-// 	return resources.map((resource) => {
-// 		const series = Series.parse(resource);
-
-// 		if (series.parent) {
-// 			throw new Error(`${series.fields.title} cannot have a parent`);
-// 		}
-
-// 		return series;
-// 	});
-// }
-
-// export async function getCollections() {
-// 	const resources = await getResources('collection');
-
-// 	return resources.map((resource) => {
-// 		const collection = Collection.parse(resource);
-
-// 		if (!collection.parent || !collection.parent.fields) {
-// 			throw new Error(
-// 				`Collection ${collection.fields.name} is not connected to a series`,
-// 			);
-// 		}
-
-// 		return collection;
-// 	});
-// }
-
-// -----------------------------------------------------------------------------
 
 const series = alias(Resource, 'series');
 const collection = alias(Resource, 'collection');
 const episode = alias(Resource, 'episode');
 const connections = alias(ResourceRelationships, 'connections');
 const parents = alias(ResourceRelationships, 'parents');
+const users = alias(UserResource, 'users');
+const user = alias(User, 'user');
 
 export async function selectSeries() {
 	const result = await db
@@ -218,7 +98,10 @@ export async function selectSeriesBySlug(slug: string) {
 
 	return {
 		...data,
-		collections: data.collections.sort((a, b) => a.position - b.position),
+		collections: data.collections.sort(
+			(a, b) =>
+				a.fields.release_year.valueOf() - b.fields.release_year.valueOf(),
+		),
 	};
 }
 
@@ -294,6 +177,8 @@ export async function selectEpisodeBySlug(
 		.leftJoin(collection, eq(connections.parentId, collection.id))
 		.leftJoin(parents, eq(parents.childId, collection.id))
 		.leftJoin(series, eq(parents.parentId, series.id))
+		.leftJoin(users, eq(episode.id, users.resourceId))
+		.leftJoin(user, eq(users.userId, user.id))
 		.where(
 			sql`
 				${episode.type} = 'episode' 
@@ -301,7 +186,75 @@ export async function selectEpisodeBySlug(
 				AND ${collection.fields}->>'slug' = ${collectionSlug}
 				AND ${episode.fields}->>'slug' = ${episodeSlug}
 			`,
-		);
+		)
+		.groupBy(episode.id);
 
 	return EpisodeApiResult.parse(result.at(0));
+}
+
+export async function getRelatedUsers(episodeId: string) {
+	const result = await db
+		.select({
+			id: user.id,
+			username: user.username,
+			display_name: user.display_name,
+			bio: user.bio,
+			avatar_url: user.avatar_url,
+			twitter_url: user.twitter_url,
+			instagram_url: user.instagram_url,
+			youtube_url: user.youtube_url,
+			linkedin_url: user.linkedin_url,
+			github_url: user.github_url,
+			website_url: user.website_url,
+		})
+		.from(users)
+		.where(eq(users.resourceId, episodeId))
+		.leftJoin(user, eq(users.userId, user.id));
+
+	return UserList.parse(result);
+}
+
+export async function createResourceRelationship({
+	childId,
+	parentId,
+}: {
+	childId: string;
+	parentId: string;
+}) {
+	console.log({ childId, parentId });
+
+	const res = await db.insert(ResourceRelationships).values({
+		parentId,
+		childId,
+	});
+
+	return res;
+}
+
+export async function createCollection(collectionData: CollectionFields) {
+	const data = CollectionFields.parse(collectionData);
+	const id = randomUUID();
+
+	await db.insert(Resource).values({
+		id,
+		createdById: 'eb6f8307-9b99-4d11-9257-07a8318e01c7', // get from user auth object
+		fields: data,
+		type: 'collection',
+	});
+
+	return id;
+}
+
+export async function createEpisode(episodeData: EpisodeFields) {
+	const data = EpisodeFields.parse(episodeData);
+	const id = randomUUID();
+
+	await db.insert(Resource).values({
+		id,
+		createdById: 'eb6f8307-9b99-4d11-9257-07a8318e01c7', // TODO: get from user auth object
+		fields: data,
+		type: 'episode',
+	});
+
+	return id;
 }

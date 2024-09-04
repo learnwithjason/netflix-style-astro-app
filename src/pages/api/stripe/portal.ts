@@ -13,33 +13,23 @@ export const POST: APIRoute = async ({ request, locals }) => {
 		});
 	}
 
-	const data = await request.formData();
-	const price = data.get('priceId') as string;
-	const customer = data.get('customerId') as string;
-
-	if (!price) {
-		// TODO what's the right HTTP code here?
-		return new Response(null, {
-			status: 404,
-			statusText: 'Not found',
-		});
-	}
-
 	const url = new URL(request.url);
 	url.pathname = '/dashboard';
 
-	const options: Stripe.Checkout.SessionCreateParams = {
-		success_url: url.toString(),
-		line_items: [{ price, quantity: 1 }],
-		metadata: { userId, test: 'value' },
-		mode: 'subscription',
-	};
+	const data = await request.formData();
+	const customer = data.get('customerId') as string;
 
-	if (customer.startsWith('cus_')) {
-		options.customer = customer;
+	if (!customer) {
+		return new Response(null, {
+			status: 401,
+			statusText: 'unauthorized',
+		});
 	}
 
-	const session = await stripe.checkout.sessions.create(options);
+	const session = await stripe.billingPortal.sessions.create({
+		customer,
+		return_url: url.toString(),
+	});
 
 	return new Response(null, {
 		status: 301,
