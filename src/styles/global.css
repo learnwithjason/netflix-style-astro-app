@@ -18,12 +18,17 @@
 	--orange-500: oklch(72.96% 0.127 36.93);
 	--indigo-500: oklch(35.56% 0.175 289.2);
 	--yellow-500: oklch(90.64% 0.17 106.57);
+	--purple-500: oklch(62.12% 0.259 305.9);
+	--purple-600: oklch(56.68% 0.281 302.97);
+	--blue-500: oklch(56.81% 0.154 252.65);
+	--blue-600: oklch(46.53% 0.155 255.48);
 
 	--white: var(--gray-000);
 	--black: var(--gray-900);
 	--text: var(--gray-400);
 	--text-muted: var(--gray-300);
 	--text-strong: var(--gray-600);
+	--text-link: var(--blue-500);
 
 	color: var(--text);
 	font-family: mallory-book, system-ui, sans-serif;

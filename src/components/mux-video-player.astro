@@ -1,5 +1,11 @@
 ---
 import Mux from '@mux/mux-node';
+import {
+	MUX_TOKEN_ID,
+	MUX_TOKEN_SECRET,
+	MUX_JWT_SIGNING_KEY,
+	MUX_JWT_PRIVATE_KEY,
+} from 'astro:env/server';
 import { createImageUrl } from '../util/cloudinary';
 import Heart from './heart.astro';
 
@@ -17,12 +23,12 @@ export interface Props {
 
 const mux = new Mux({
 	// for API access
-	tokenId: import.meta.env.MUX_TOKEN_ID,
-	tokenSecret: import.meta.env.MUX_TOKEN_SECRET,
+	tokenId: MUX_TOKEN_ID,
+	tokenSecret: MUX_TOKEN_SECRET,
 
 	// for signed asset access
-	jwtSigningKey: import.meta.env.MUX_JWT_SIGNING_KEY,
-	jwtPrivateKey: import.meta.env.MUX_JWT_PRIVATE_KEY,
+	jwtSigningKey: MUX_JWT_SIGNING_KEY,
+	jwtPrivateKey: MUX_JWT_PRIVATE_KEY,
 });
 
 const user = await Astro.locals.currentUser();

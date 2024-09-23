@@ -1,7 +1,8 @@
 import { v2 as cloudinary, type TransformationOptions } from 'cloudinary';
+import { CLOUDINARY_CLOUD_NAME } from 'astro:env/server';
 
 cloudinary.config({
-	cloud_name: import.meta.env.CLOUDINARY_CLOUD_NAME,
+	cloud_name: CLOUDINARY_CLOUD_NAME,
 });
 
 export function createImageUrl(

@@ -1,7 +1,8 @@
 import { createClerkClient } from '@clerk/backend';
+import { CLERK_SECRET_KEY } from 'astro:env/server';
 
 const clerk = createClerkClient({
-	secretKey: import.meta.env.CLERK_SECRET_KEY,
+	secretKey: CLERK_SECRET_KEY,
 });
 
 export async function loadUsersByIDs(ids: Array<string>) {

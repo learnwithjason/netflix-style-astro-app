@@ -1,39 +1,9 @@
 ---
-import Stripe from 'stripe';
-import { type User } from 'astro-clerk-auth/server';
+import { actions } from 'astro:actions';
 import { getSubscriberByEmail } from '../../util/convertkit';
+import { getPersonById } from '../../util/sanity';
+import { getSubscriptionDetails, STRIPE_SUBSCRIPTION_TYPES } from '../../util/stripe';
 import Layout from '../../layouts/default.astro';
-import { getPersonById, updatePerson } from '../../util/sanity';
-import type { PersonByIdQueryResult } from '../../types/sanity';
-
-// TODO find a way to preserve _key for profile links
-
-const subscriptionTypes = [
-	{
-		name: 'Boop Enthusiast',
-		description: 'Show your support, get early access to new episodes, and directly fund the creation of new LWJ content.',
-		prices: [
-			{
-				period: 'monthly',
-				price: 500,
-				priceId: 'price_1PaiAnJ4VGTQR05OcgOnDj5V'
-			},
-		],
-	},
-	{
-		name: 'Boop Connoisseur',
-		description: 'Show your support, get early access to new episodes, and directly fund the creation of new LWJ content.',
-		prices: [
-			{
-				period: 'monthly',
-				price: 2000,
-				priceId: 'price_1PaiBLJ4VGTQR05OVmqMyX7O'
-			},
-		],
-	},
-];
-
-const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY!);
 
 const user = await Astro.locals.currentUser();
 
@@ -41,46 +11,7 @@ if (!user) {
 	throw new Error('not logged in');
 }
 
-if (Astro.request.method === 'POST') {
-	const form = await Astro.request.formData();
-
-	const id = form.get('id');
-	const name = form.get('display_name');
-	const bio = form.get('bio');
-	const link_labels = form.getAll('link_label[]');
-	const link_urls = form.getAll('link_url[]');
-
-	if (!id || !name) {
-		throw new Error('missing ID or name')
-	}
-
-	await updatePerson(id.toString(), {
-		name: name.toString(),
-		bio: bio?.toString() ?? '',
-		links: link_urls
-			.map((url, i) => {
-				if (!url) {
-					return false;
-				}
-
-				return {
-					label: link_labels.at(i)?.toString() ?? '',
-					url: url.toString(),
-				};
-			})
-			.filter((val) => val !== false),
-	});
-}
-
-let stripeSub;
-if (user && user.publicMetadata?.stripe?.customer) {
-	const subList = await stripe.subscriptions.list({
-		customer: user.publicMetadata.stripe.customer,
-	});
-
-	stripeSub = subList.data.at(0);
-}
-
+const stripeSub = await getSubscriptionDetails(user);
 const newsletterSubscription = user.primaryEmailAddress ? await getSubscriberByEmail(user.primaryEmailAddress.emailAddress) : null;
 const	userDetails = await getPersonById({ user_id: user.id }, { useCdn: false });
 
@@ -88,7 +19,7 @@ if (!userDetails) {
 	throw new Error('no user details found')
 }
 
-const subscription = user?.publicMetadata.stripe as Subscription;
+const subscription = user?.publicMetadata.stripe;
 const isSubscriber = subscription?.status === 'active';
 ---
 
@@ -124,7 +55,7 @@ const isSubscriber = subscription?.status === 'active';
 						<h2>Become a supporter</h2>
 
 						<div class="sub-levels">
-							{subscriptionTypes.map((level) => (
+							{STRIPE_SUBSCRIPTION_TYPES.map((level) => (
 								<div class="sub-level">
 									<h3>{level.name}</h3>
 									<p>{level.description}</p>
@@ -149,7 +80,7 @@ const isSubscriber = subscription?.status === 'active';
 		) : null}
 
 		<section class="details">
-			<form method="post">
+			<form method="post" action={actions.user.updateProfile}>
 				<legend>Account Details</legend>
 
 				<label for="display_name">Display name</label>

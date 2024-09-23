@@ -2,8 +2,13 @@ import type { APIRoute } from 'astro';
 import { createClient, Transaction } from '@sanity/client';
 import groq from 'groq';
 import { v2 as cloudinary } from 'cloudinary';
+import {
+	CLOUDINARY_CLOUD_NAME,
+	CLOUDINARY_API_KEY,
+	CLOUDINARY_API_SECRET,
+	SANITY_SECRET_TOKEN,
+} from 'astro:env/server';
 import type {
-	CloudinaryAsset,
 	Episode,
 	OldEpisodesQueryResult,
 	Person,
@@ -11,16 +16,16 @@ import type {
 import { createUser } from '../../../util/clerk';
 
 cloudinary.config({
-	cloud_name: import.meta.env.CLOUDINARY_CLOUD_NAME,
-	api_key: import.meta.env.CLOUDINARY_API_KEY,
-	api_secret: import.meta.env.CLOUDINARY_API_SECRET,
+	cloud_name: CLOUDINARY_CLOUD_NAME,
+	api_key: CLOUDINARY_API_KEY,
+	api_secret: CLOUDINARY_API_SECRET,
 });
 
 const oldClient = createClient({
 	projectId: 'vnkupgyb',
 	dataset: 'production',
 	apiVersion: '2021-10-21',
-	token: import.meta.env.SANITY_SECRET_TOKEN,
+	token: SANITY_SECRET_TOKEN,
 	useCdn: true,
 });
 
@@ -28,39 +33,74 @@ const newClient = createClient({
 	projectId: 'vnkupgyb',
 	dataset: 'develop',
 	apiVersion: '2024-08-10',
-	token: import.meta.env.SANITY_SECRET_TOKEN,
+	token: SANITY_SECRET_TOKEN,
 	useCdn: true,
 });
 
-// const COLLECTION_TO_UPDATE = 'ad616071-dd4b-4e29-a170-f530b2f68bd5';
-
 const oldEpisodesQuery = groq`
-	*[_type == "episode" && date > "2018-12-31T23:59:59" && date < "2019-12-31T23:59:59"]{
+	*[_type == "episode" && date > $startDate && date < $endDate]{
 		...,
 		host->{
-			...,
-			guestImage{asset->},
+				...,
+				guestImage{asset->},
 		},
 		guest[]->{
-			...,
-			guestImage{asset->},
+				...,
+				guestImage{asset->},
 		},
-		episodeTags[]->,
-	} | order(date asc)[60...80]
+		episodeTags[],
+	} | order(date asc)[$startIndex...$endIndex]
 `;
 
-export const GET: APIRoute = async () => {
-	const data = await oldClient.fetch<OldEpisodesQueryResult>(oldEpisodesQuery);
+export const GET: APIRoute = async ({ request }) => {
+	const url = new URL(request.url);
+
+	const COLLECTION_TO_UPDATE = url.searchParams.get('collection');
+	const UPDATE_MODE: string | null = url.searchParams.get('mode');
+	const YEAR: number = parseInt(url.searchParams.get('year') ?? '2024');
+	const PAGE: number = parseInt(url.searchParams.get('page') ?? '1');
+	const pageSize = 20;
+
+	const params = {
+		startDate: `${YEAR}-01-01T00:00:00-0700`,
+		endDate: `${YEAR}-12-31T23:59:59-0700`,
+		startIndex: (PAGE - 1) * pageSize,
+		endIndex: PAGE * pageSize,
+	};
+
+	if (
+		!COLLECTION_TO_UPDATE ||
+		!UPDATE_MODE ||
+		!['append', 'replace'].includes(UPDATE_MODE)
+	) {
+		return new Response('collection and update mode required', {
+			status: 422,
+		});
+	}
+
+	const data = await oldClient.fetch<OldEpisodesQueryResult>(
+		oldEpisodesQuery,
+		params,
+	);
 
 	const people = new Map<string, Person>();
 	const episodes: Array<Episode> = [];
 
 	await Promise.all(
 		data.map(async (ep) => {
-			const peopleToAdd = [...ep.guest, ep.host].filter(Boolean);
+			const peopleToAdd: Array<{
+				_id: string;
+				_createdAt: string;
+				_updatedAt: string;
+				_rev: string;
+				name: string;
+				twitter: string;
+				guestImage: { asset: { url: string; assetId: string } };
+				// @ts-expect-error Sanity typegen is still in beta and misses sometimes
+			}> = [...ep.guest, ep.host].filter(Boolean);
 
 			await Promise.all(
-				peopleToAdd.map(async (person: any) => {
+				peopleToAdd.map(async (person) => {
 					if (!person) {
 						return;
 					}
@@ -77,6 +117,10 @@ export const GET: APIRoute = async () => {
 						},
 					);
 
+					if (!person.twitter) {
+						console.log(person);
+					}
+
 					people.set(person._id, {
 						_type: 'person',
 						_createdAt: person._createdAt,
@@ -84,8 +128,9 @@ export const GET: APIRoute = async () => {
 						_rev: person._rev,
 						_id: person._id,
 						name: person.name,
+						// @ts-expect-error no idea why Sanity doesn't pick this one up
 						slug: {
-							current: person.twitter,
+							current: person.twitter.trim(),
 							_type: 'slug',
 						},
 						photo: {
@@ -115,6 +160,54 @@ export const GET: APIRoute = async () => {
 				}),
 			);
 
+			let resources: Array<{
+				_type: 'resource';
+				_key: string;
+				label: string;
+				url: string;
+			}> = [];
+
+			// @ts-expect-error mismatch on prod/dev schema types
+			const demoUrl: string = ep.demo;
+
+			if (demoUrl) {
+				resources.push({
+					_type: 'resource',
+					_key: demoUrl,
+					label: 'Demo',
+					url: demoUrl,
+				});
+			}
+
+			// @ts-expect-error mismatch on prod/dev schema types
+			const repoUrl = ep.repo;
+
+			if (repoUrl) {
+				resources.push({
+					_type: 'resource',
+					_key: repoUrl,
+					label: 'Repo',
+					url: repoUrl,
+				});
+			}
+
+			resources = resources.concat(
+				// @ts-expect-error mismatch on prod/dev schema types
+				(ep.links ?? []).map((rawLink: string) => {
+					let link = rawLink;
+					if (link.includes('jason.af')) {
+						link = link.replace('jason.af', 'jason.energy');
+					}
+
+					return {
+						_type: 'resource',
+						_key: link,
+						label: link,
+						url: link,
+					};
+				}),
+			);
+
 			episodes.push({
 				_type: ep._type,
 				_createdAt: ep._createdAt,
@@ -128,40 +221,62 @@ export const GET: APIRoute = async () => {
 					'',
 				),
 				description: ep.description,
-				publish_date: ep.date,
+				// @ts-expect-error mismatch on prod/dev schema types
+				publish_date: ep.date as Date,
 				people: peopleToAdd.map((p) => ({
 					_type: 'reference',
 					_ref: p._id,
 					_key: p._rev,
 				})),
+				resources,
 				video: {
+					// @ts-expect-error mismatch on prod/dev schema types
 					thumbnail_alt: `${ep.guest.at(0).name} on a title card that reads, "${
 						ep.title
 					}"`,
+					// @ts-expect-error mismatch on prod/dev schema types
 					youtube_id: ep.youtubeID,
+					// @ts-expect-error mismatch on prod/dev schema types
+					transcript: ep.transcript ?? '',
 				},
 			});
 		}),
 	);
 
-	// create documents
 	const transaction = new Transaction();
 
 	await Promise.all(
 		[...people.values()].map(async (person) => {
-			const clerkUser = await createUser({
-				external_id: person._id,
-				first_name: person.name?.split(' ').at(0),
-				last_name: person.name?.split(' ').at(1),
+			let clerkUser = await createUser({
+				externalId: person._id,
+				firstName: person.name?.split(' ').at(0),
+				lastName: person.name?.split(' ').at(1),
+				// @ts-expect-error Sanity typegen error
 				username: person.slug.current,
-				private_metadata: {
+				privateMetadata: {
 					sanity_import: true,
 				},
+			}).catch((error) => {
+				console.log(error);
 			});
+
+			if (!clerkUser?.id) {
+				console.log({
+					externalId: person._id,
+					firstName: person.name?.split(' ').at(0),
+					lastName: person.name?.split(' ').at(1),
+					// @ts-expect-error Sanity typegen error
+					username: person.slug.current,
+					privateMetadata: {
+						sanity_import: true,
+					},
+					clerkUser,
+				});
+			}
 
 			transaction.createOrReplace({
 				...person,
-				user_id: clerkUser.id,
+				user_id: clerkUser?.id,
 			});
 		}),
 	);
@@ -170,24 +285,44 @@ export const GET: APIRoute = async () => {
 		transaction.createOrReplace(episode);
 	});
 
-	// XXX make sure to update this ID for the correct collection!
-	const episodePatch = newClient
-		.patch(COLLECTION_TO_UPDATE)
-		.setIfMissing({ episodes: [] })
-		.append(
-			'episodes',
-			episodes
-				.sort(
-					(a, b) =>
-						new Date(a.publish_date).getTime() -
-						new Date(b.publish_date).getTime(),
-				)
-				.map((ep) => ({
-					_ref: ep._id,
-					_type: 'reference',
-					_key: ep._id,
-				})),
-		);
+	let episodePatch;
+
+	if (UPDATE_MODE === 'append') {
+		episodePatch = newClient
+			.patch(COLLECTION_TO_UPDATE)
+			.setIfMissing({ episodes: [] })
+			.append(
+				'episodes',
+				episodes
+					.sort(
+						(a, b) =>
+							new Date(a.publish_date ?? '').getTime() -
+							new Date(b.publish_date ?? '').getTime(),
+					)
+					.map((ep) => ({
+						_ref: ep._id,
+						_type: 'reference',
+						_key: ep._id,
+					})),
+			);
+	} else {
+		episodePatch = newClient
+			.patch(COLLECTION_TO_UPDATE)
+			.setIfMissing({ episodes: [] })
+			.set({
+				episodes: episodes
+					.sort(
+						(a, b) =>
+							new Date(a.publish_date ?? '').getTime() -
+							new Date(b.publish_date ?? '').getTime(),
+					)
+					.map((ep) => ({
+						_ref: ep._id,
+						_type: 'reference',
+						_key: ep._id,
+					})),
+			});
+	}
 
 	transaction.patch(episodePatch);
 

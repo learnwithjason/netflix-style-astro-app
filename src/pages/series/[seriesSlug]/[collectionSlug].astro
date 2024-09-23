@@ -29,8 +29,6 @@ const seriesImage = createImageUrl(series.image.public_id, {
 	aspect_ratio: '16:9',
 	crop: 'fill',
 });
-
-console.log(series);
 ---
 
 <Layout>
@@ -60,14 +58,19 @@ console.log(series);
 				<select id="collection-selector">
 					{
 						series.collections
-							? series.collections.map((c) => (
-									<option
-										value={`/series/${series.slug}/${c.slug}#episodes`}
-										selected={c.slug === series.collection?.slug}
-									>
-										{c.title}
-									</option>
-								))
+							? series.collections.map((c) => {
+									const pathname = `/series/${series.slug}/${c.slug}#episodes`;
+									const selected = c.slug === series.collection?.slug;
+
+									// TODO when https://github.com/withastro/astro/pull/12027 is released simplify this code
+									return selected ? (
+										<option value={pathname} selected>
+											{c.title}
+										</option>
+									) : (
+										<option value={pathname}>{c.title}</option>
+									);
+								})
 							: null
 					}
 				</select>

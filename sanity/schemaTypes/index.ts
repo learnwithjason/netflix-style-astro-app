@@ -1,18 +1,5 @@
-import {definePlugin, defineField, defineType} from 'sanity'
+import {defineField, defineType} from 'sanity'
 import {person} from './documents/person'
-// import guest from './documents/guest'
-// import tags from './documents/tags'
-// import episodeImage from './objects/episode-image'
-
-// export const previewUrlPlugin = definePlugin({
-//   name: 'preview-url-plugin',
-//   document: {
-//     productionUrl: async (prev, {document}) => {
-//       const slug = document.slug?.current
-//       return slug ? `https://some-custom-url.xyz/${slug}` : prev
-//     },
-//   },
-// })
 
 function slugify(str: string) {
   return String(str)
@@ -127,11 +114,12 @@ const collection = defineType({
       series_title: 'series.title',
       title: 'title',
       year: 'release_year',
+      episodes: 'episodes',
     },
-    prepare({series_title, title, year}) {
+    prepare({series_title, title, year, episodes}) {
       return {
         title: `${series_title}: ${title}`,
-        subtitle: `Released ${new Date(year).getFullYear()}`,
+        subtitle: `Released ${new Date(year).getFullYear()} · ${episodes.length} episodes`,
       }
     },
   },

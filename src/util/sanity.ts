@@ -1,17 +1,18 @@
 import { createClient } from '@sanity/client';
+import groq from 'groq';
+import { SANITY_SECRET_TOKEN } from 'astro:env/server';
 import type {
 	AllSeriesQueryResult,
 	EpisodeBySlugQueryResult,
 	PersonByIdQueryResult,
 	SeriesBySlugQueryResult,
 } from '../types/sanity';
-import groq from 'groq';
 
 const client = createClient({
 	projectId: 'vnkupgyb',
 	dataset: 'develop',
 	apiVersion: '2024-08-10',
-	token: import.meta.env.SANITY_SECRET_TOKEN,
+	token: SANITY_SECRET_TOKEN,
 	useCdn: true,
 });
 
@@ -29,9 +30,9 @@ const allSeriesQuery = groq`
       title,
       'slug': slug.current,
       release_year,
-      'episode_count': count(episodes)
+      'episode_count': count(episodes[@->hidden != true && @->publish_date < now()])
     },
-    'total_episode_count': count(collections[]->episodes[])
+    'total_episode_count': count(collections[]->episodes[@->hidden != true && @->publish_date < now()]),
   }
 `;
 
@@ -49,7 +50,7 @@ const seriesBySlugQuery = groq`
       title,
       'slug': slug.current,
       release_year,
-      episodes[@->hidden!=true]->{
+      episodes[@->hidden != true && @->publish_date < now()]->{
         title,
         'slug': slug.current,
         short_description,
@@ -91,9 +92,15 @@ const episodeBySlugQuery = groq`
       'captions': captions.asset->url,
       transcript,
     },
-    people[]->,
+    people[]-> {
+      user_id,
+      name,
+      photo {
+        public_id
+      }
+    },
     supporters,
-    'related_episodes': *[_type=="collection" && references(^._id)][0].episodes[]-> {
+    'related_episodes': *[_type=="collection" && references(^._id)][0].episodes[@->hidden != true && @->publish_date < now()]-> {
       title,
       'slug': slug.current,
       short_description,
@@ -132,7 +139,7 @@ const personByIdQuery = groq`
     bio,
     links[],
     user_id,
-    "episodes": *[_type == "episode" && hidden!=true && references(^._id)] {
+    "episodes": *[_type == "episode" && hidden!=true && references(^._id) && publish_date < now()] {
       title,
       'slug': slug.current,
       short_description,

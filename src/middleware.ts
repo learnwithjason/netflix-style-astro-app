@@ -1,4 +1,4 @@
-import { clerkMiddleware, createRouteMatcher } from 'astro-clerk-auth/server';
+import { clerkMiddleware, createRouteMatcher } from '@clerk/astro/server';
 
 const isProtectedPage = createRouteMatcher([
 	/^(?!.*\/(?:sign-up|sign-in)\/?$)\/dashboard.*$/,

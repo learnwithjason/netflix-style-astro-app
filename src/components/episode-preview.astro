@@ -56,8 +56,6 @@ const description =
 			<span class="episode-date">
 				{format(episode.publish_date, 'MMM d, yyyy')}
 			</span>
-			{/* TODO: fix hard-coded length */}
-			<span class="episode-length">3m</span>
 		</div>
 		<h2>
 			<a href={episodeUrl}>
@@ -131,9 +129,6 @@ const description =
 	}
 
 	.episode-date {
-	}
-
-	.episode-length {
 		margin-inline-start: auto;
 	}
 </style>

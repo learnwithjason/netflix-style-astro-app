@@ -3,8 +3,8 @@ export default {
   type: 'document',
   title: 'Episode',
   groups: [
-    { name: 'schedule', title: 'Schedule Details', default: true },
-    { name: 'published', title: 'Published Details' },
+    {name: 'schedule', title: 'Schedule Details', default: true},
+    {name: 'published', title: 'Published Details'},
   ],
   fields: [
     {
@@ -17,7 +17,7 @@ export default {
       title: 'Hide this episode on the website',
       name: 'hidden',
       type: 'boolean',
-      options: { layout: 'checkbox' },
+      options: {layout: 'checkbox'},
       group: 'schedule',
     },
     {
@@ -48,14 +48,14 @@ export default {
       name: 'guest',
       title: 'Guest(s)',
       type: 'array',
-      of: [{ type: 'reference', to: [{ type: 'guest' }] }],
+      of: [{type: 'reference', to: [{type: 'guest'}]}],
       group: 'schedule',
     },
     {
       name: 'host',
       title: 'Host',
       type: 'reference',
-      to: [{ type: 'guest' }],
+      to: [{type: 'guest'}],
       group: 'schedule',
     },
     {
@@ -64,7 +64,7 @@ export default {
       title: 'Tags',
       description:
         'Add tags so this episode shows up in grouped lists. When possible, stick to existing tags.',
-      of: [{ type: 'reference', to: [{ type: 'episodeTag' }] }],
+      of: [{type: 'reference', to: [{type: 'episodeTag'}]}],
       group: 'schedule',
     },
     {
@@ -79,7 +79,7 @@ export default {
       type: 'url',
       title: 'Demo URL',
       description: 'Where can people see the result of this episode online?',
-      hidden: ({ document }) => !document?.youtubeID,
+      hidden: ({document}) => !document?.youtubeID,
       group: 'published',
     },
     {
@@ -87,7 +87,7 @@ export default {
       type: 'url',
       title: 'Repo URL',
       description: 'Where can people see the source code?',
-      hidden: ({ document }) => !document?.youtubeID,
+      hidden: ({document}) => !document?.youtubeID,
       group: 'published',
     },
     {
@@ -95,16 +95,16 @@ export default {
       type: 'array',
       title: 'Links and Resources',
       description: 'Links to anything that was mentioned during the episode.',
-      of: [{ type: 'url' }],
-      hidden: ({ document }) => !document?.youtubeID,
+      of: [{type: 'url'}],
+      hidden: ({document}) => !document?.youtubeID,
       group: 'published',
     },
     {
       title: 'Feature this episode',
       name: 'featured',
       type: 'boolean',
-      options: { layout: 'checkbox' },
-      hidden: ({ document }) => !document?.youtubeID,
+      options: {layout: 'checkbox'},
+      hidden: ({document}) => !document?.youtubeID,
       group: 'published',
     },
     {
@@ -112,7 +112,7 @@ export default {
       type: 'markdown',
       title: 'Transcript',
       description: 'Get this from rev.com as a .txt file.',
-      hidden: ({ document }) => !document?.youtubeID,
+      hidden: ({document}) => !document?.youtubeID,
       group: 'published',
     },
     {
@@ -122,7 +122,7 @@ export default {
     },
   ],
   initialValue: () => ({
-    host: { _type: 'reference', _ref: '1c607bb5-519b-49b6-9da9-5ddc424aa44c' },
+    host: {_type: 'reference', _ref: '1c607bb5-519b-49b6-9da9-5ddc424aa44c'},
     featured: false,
     hidden: false,
     image: {
@@ -134,4 +134,4 @@ export default {
       },
     },
   }),
-};
+}

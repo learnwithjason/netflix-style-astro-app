@@ -44,7 +44,7 @@ export const person = defineType({
       title: 'Bio',
       name: 'bio',
       type: 'markdown',
-      validation: (rule) => rule.max(250),
+      validation: (rule) => rule.max(750),
     }),
     defineField({
       title: 'Links',
@@ -65,6 +65,7 @@ export const person = defineType({
       title: 'Clerk User ID',
       name: 'user_id',
       type: 'string',
+      validation: (rule) => rule.required(),
       // readOnly: true,
     }),
   ],

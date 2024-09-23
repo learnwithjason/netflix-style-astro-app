@@ -2,21 +2,17 @@
 /// <reference path="../.astro/db-types.d.ts" />
 /// <reference path="../.astro/types.d.ts" />
 /// <reference types="astro/client" />
-/// <reference types="astro-clerk-auth/env" />
-
-declare interface UserPublicMetadata {
-	stripe?: {
-		customer?: string;
-		status?: string;
-		level?: string;
-	};
-}
+/// <reference types="@clerk/astro/env" />
 
 type Subscription = {
-	status: 'active';
+	status: Stripe.Status;
 	level: string;
-	customer: string;
+	customer: Stripe.Customer | Stripe.DeletedCustomer | string;
 };
+
+declare interface UserPublicMetadata {
+	stripe?: Subscription;
+}
 
 // copy-pasted out of @clerk/backend for use in a util function
 type UserMetadataParams = {

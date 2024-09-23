@@ -1,9 +1,10 @@
 import { type APIRoute } from 'astro';
 import Stripe from 'stripe';
-import { clerkClient } from 'astro-clerk-auth/server';
+import { clerkClient } from '@clerk/astro/server';
+import { STRIPE_WEBHOOK_SECRET, STRIPE_SECRET_KEY } from 'astro:env/server';
 
-const webhookSecret = import.meta.env.STRIPE_WEBHOOK_SECRET!;
-const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY!);
+const webhookSecret = STRIPE_WEBHOOK_SECRET;
+const stripe = new Stripe(STRIPE_SECRET_KEY);
 
 export const POST: APIRoute = async (context) => {
 	const signature = context.request.headers.get('stripe-signature');
