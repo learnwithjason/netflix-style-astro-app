@@ -1,6 +1,7 @@
 ---
-import { Image } from '@unpic/astro';
 import Logo from '../components/logo.astro';
+import Search from '../components/search/search.astro';
+import UserButton from '../components/user-button.astro';
 import '../styles/global.css';
 
 const nav = [
@@ -9,10 +10,7 @@ const nav = [
 	{ path: '/blog', label: 'Blog' },
 	{ path: '/newsletter', label: 'Newsletter' },
 	{ path: 'https://partners.lwj.dev', label: 'Partners' },
-	{ path: '#search', label: 'Search' },
 ];
-
-const user = await Astro.locals.currentUser();
 ---
 
 <html lang="en">
@@ -34,37 +32,60 @@ const user = await Astro.locals.currentUser();
 
 				<div class="nav-group" id="menu" popover>
 					<div class="account">
-						{
-							user ? (
-								<a href="/dashboard">
-									Manage your profile
-									<Image
-										src={user.imageUrl}
-										alt={user.fullName}
-										aspectRatio={1}
-										width={60}
-										layout="fixed"
-										unstyled
-									/>
-								</a>
-							) : (
-								<>
-									<a href="/dashboard/sign-in">Sign In</a>
-									<a href="/dashboard/sign-up">Create Account</a>
-								</>
-							)
-						}
+						<UserButton server:defer>
+							<a slot="fallback" href="#loading">
+								loading... <div class="placeholder-img"></div>
+							</a>
+						</UserButton>
 					</div>
 
 					<nav>
 						{nav.map(({ path, label }) => <a href={path}>{label}</a>)}
+
+						<a
+							href="#search"
+							class="open-search"
+							title="open site search"
+							data-name="nav-search"
+						>
+							<svg viewBox="0 0 20 20">
+								<path
+									fill="none"
+									fill-rule="evenodd"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									d="M14.386 14.386l4.088 4.088-4.088-4.088A7.533 7.533 0 113.733 3.733a7.533 7.533 0 0110.653 10.653z"
+								></path>
+							</svg>
+							⌘+K
+						</a>
 					</nav>
 				</div>
 			</div>
 		</header>
 		<slot />
+
+		<footer>
+			<Search />
+		</footer>
 	</body>
 </html>
+
+<script>
+	const navSearchBtn = document.querySelector('[data-name="nav-search"]');
+
+	navSearchBtn?.addEventListener('click', (event) => {
+		event.preventDefault();
+
+		const search = document.querySelector(
+			'[data-name="main-search"]',
+		) as HTMLButtonElement;
+
+		search.click();
+	});
+</script>
 
 <style>
 	header {
@@ -211,8 +232,10 @@ const user = await Astro.locals.currentUser();
 					text-transform: lowercase;
 				}
 
+				.placeholder-img,
 				img {
 					aspect-ratio: 1;
+					background: var(--text-muted);
 					block-size: auto;
 					border: 1px solid var(--black);
 					border-radius: 50%;
@@ -223,7 +246,7 @@ const user = await Astro.locals.currentUser();
 			}
 
 			nav {
-				align-items: center;
+				align-items: baseline;
 				backdrop-filter: blur(1rem);
 				background: color-mix(in oklch, var(--gray-400) 60%, transparent);
 				border: 1px solid color-mix(in oklch, var(--white) 15%, transparent);
@@ -255,6 +278,25 @@ const user = await Astro.locals.currentUser();
 					line-height: 1.1;
 					pointer-events: all;
 					text-decoration: none;
+				}
+
+				.open-search {
+					align-items: baseline;
+					background: var(--white);
+					border-radius: 1rem;
+					color: var(--text-muted);
+					display: flex;
+					gap: 0.375rem;
+					font-size: 0.875rem;
+					margin-inline-start: 0.75rem;
+					padding: 0.25rem 1rem;
+
+					svg {
+						display: block;
+						inline-size: 0.875rem;
+						position: relative;
+						inset-block-start: 0.1rem;
+					}
 				}
 			}
 		}

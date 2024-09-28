@@ -36,7 +36,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 		mode: 'subscription',
 	};
 
-	if (customer.startsWith('cus_')) {
+	if (customer && customer.startsWith('cus_')) {
 		options.customer = customer;
 	}
 

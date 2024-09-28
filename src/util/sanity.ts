@@ -50,7 +50,7 @@ const seriesBySlugQuery = groq`
       title,
       'slug': slug.current,
       release_year,
-      episodes[@->hidden != true && @->publish_date < now()]->{
+      episodes[@->hidden != true && @->publish_date < now() && (defined(@->video.youtube_id) || defined(@->video.mux_video))]->{
         title,
         'slug': slug.current,
         short_description,

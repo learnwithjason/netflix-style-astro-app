@@ -117,9 +117,11 @@ const collection = defineType({
       episodes: 'episodes',
     },
     prepare({series_title, title, year, episodes}) {
+      const episodeCount = episodes?.length ?? 0
+
       return {
         title: `${series_title}: ${title}`,
-        subtitle: `Released ${new Date(year).getFullYear()} · ${episodes.length} episodes`,
+        subtitle: `Released ${new Date(year).getFullYear()} · ${episodeCount} episodes`,
       }
     },
   },

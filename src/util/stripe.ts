@@ -6,26 +6,38 @@ const stripe = new Stripe(STRIPE_SECRET_KEY);
 
 export const STRIPE_SUBSCRIPTION_TYPES = [
 	{
-		name: 'Boop Enthusiast',
+		name: 'Silver',
 		description:
-			'Show your support, get early access to new episodes, and directly fund the creation of new LWJ content.',
+			'Get early access to new episodes, and directly fund the creation of new content.',
 		prices: [
 			{
 				period: 'monthly',
-				price: 500,
+				price: 5_00,
 				priceId: 'price_1PaiAnJ4VGTQR05OcgOnDj5V',
 			},
 		],
 	},
 	{
-		name: 'Boop Connoisseur',
+		name: 'Gold',
 		description:
-			'Show your support, get early access to new episodes, and directly fund the creation of new LWJ content.',
+			'All the perks of the silver tier + a 20% discount on courses and workshops.',
 		prices: [
 			{
 				period: 'monthly',
-				price: 2000,
+				price: 20_00,
 				priceId: 'price_1PaiBLJ4VGTQR05OVmqMyX7O',
+			},
+		],
+	},
+	{
+		name: 'Platinum',
+		description:
+			'All the perks of the gold tier + the option to book a 30-minute monthly strategy call.',
+		prices: [
+			{
+				period: 'monthly',
+				price: 100_00,
+				priceId: '', // TODO create this
 			},
 		],
 	},

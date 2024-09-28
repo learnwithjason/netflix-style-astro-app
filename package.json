@@ -10,6 +10,8 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@algolia/autocomplete-core": "^1.17.4",
+    "@algolia/autocomplete-preset-algolia": "^1.17.4",
     "@astrojs/check": "^0.9.3",
     "@astrojs/db": "^0.14.0-beta.1",
     "@astrojs/mdx": "^4.0.0-beta.1",
@@ -24,10 +26,11 @@
     "@mux/mux-player-react": "^2.6.0",
     "@mux/videojs-kit": "^0.12.0",
     "@sanity/client": "^6.21.2",
-    "@types/react": "^18.3.1",
+    "@types/react": "^18.3.10",
     "@types/react-dom": "^18.3.0",
     "@unpic/astro": "^0.0.46",
-    "astro": "^5.0.0-beta.1",
+    "algoliasearch": "^5.6.1",
+    "astro": "^5.0.0-beta.2",
     "cloudinary": "^2.4.0",
     "date-fns": "^3.6.0",
     "groq": "^3.53.0",

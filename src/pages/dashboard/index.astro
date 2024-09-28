@@ -45,37 +45,59 @@ const isSubscriber = subscription?.status === 'active';
 							) : null}
 						</>
 
-						<a href={`/profile/${user.username}`} class="view-profile">View Your Public Profile</a>
-
 						<form action="/api/stripe/portal" method="POST">
 							<input type="hidden" name="customerId" value={subscription.customer} />
 							<button>manage your subscription</button>
 						</form>
-					) : (
-						<h2>Become a supporter</h2>
+					) : null}
 
-						<div class="sub-levels">
-							{STRIPE_SUBSCRIPTION_TYPES.map((level) => (
-								<div class="sub-level">
-									<h3>{level.name}</h3>
-									<p>{level.description}</p>
+					<a href={`/profile/${user.username}`} class="view-profile">View Your Public Profile</a>
+				</>
+			</section>
+		) : null}
 
-									<>
-										{level.prices.map((price) => (
+		{!isSubscriber ? (
+			<section class="support">
+				<h2>Become a supporter</h2>
+				<p>
+					LWJ isn’t a VC-backed company. We rely on sponsorships and support from people just like you to continue operating. Creating content for developers at the level of quality they deserve isn’t cheap, and the income from your membership helps make new series and formats possible.
+				</p>
+
+				<h3>Choose your level of support:</h3>
+
+				<div class="sub-levels">
+					{STRIPE_SUBSCRIPTION_TYPES.map((level) => {
+						return (
+							<div class="sub-level">
+								<h3>{level.name}</h3>
+								<p>{level.description}</p>
+
+								<>
+									{level.prices.map((price) => {
+										const formattedPrice = new Intl.NumberFormat(
+											'en-US',
+											{
+												style: 'currency',
+												currency: 'USD',
+												maximumFractionDigits: 0,
+											}
+										).format(price.price / 100);
+
+										return (
 											<form action="/api/stripe/checkout" method="POST">
 												{user?.publicMetadata?.stripe?.customer ? (
 													<input type="hidden" name="customerId" value={user.publicMetadata.stripe.customer} />
 												) : null}
 												<input type="hidden" name="priceId" value={price.priceId} />
-												<button>Subscribe {price.period} for {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price.price / 100)}</button>
+												<button>Subscribe {price.period} for {formattedPrice}</button>
 											</form>
-										))}
-									</>
-								</div>
-							))}
-						</div>
+										)}
+									)}
+								</>
+							</div>
+						)}
 					)}
-				</>
+				</div>
 			</section>
 		) : null}
 
@@ -246,40 +268,100 @@ const isSubscriber = subscription?.status === 'active';
 				padding: 0.25rem;
 			}
 		}
-
-		.view-profile,
-		button {
-			background: var(--white);
-			border: 1px solid var(--gray-400);
-			border-radius: 0.125rem;
-			color: var(--gray-400);
-			display: block;
-			font-family: mallory-book;
-			font-size: 0.625rem;
-			inline-size: 100%;
-			margin-block-start: 1rem;
-			margin-inline: auto;
-			padding: 0.25rem 0.625rem;
-			text-align: center;
-			text-decoration: none;
-			text-transform: lowercase;
-		}
 	}
 
-	.sub-level {
-		h3 {
-			font-family: mallory-medium;
-			line-height: 1.1;
-			margin-block: 2rem 0.25rem;
-		}
-
-		p {
-			text-align: left;
-		}
+	.view-profile,
+	button {
+		background: var(--white);
+		border: 1px solid var(--gray-400);
+		border-radius: 0.125rem;
+		color: var(--gray-400);
+		display: block;
+		font-family: mallory-book;
+		font-size: 0.625rem;
+		inline-size: 100%;
+		margin-block-start: 1rem;
+		margin-inline: auto;
+		padding: 0.25rem 0.625rem;
+		text-align: center;
+		text-decoration: none;
+		text-transform: lowercase;
 	}
 
 	:global(.cl-rootBox) {
 		margin-inline: auto;
+	}
+
+	.support {
+		inline-size: min(90dvi, 660px + 1rem);
+		margin: 4rem auto;
+		text-align: center;
+
+		h2 {
+			font-size: 1.5rem;
+		}
+
+		p {
+			font-size: 0.875rem;
+			margin-block-start: 0.5rem;
+			margin-inline: auto;
+			max-inline-size: 54ch;
+		}
+
+		h3 {
+			font-size: 1.25rem;
+			margin-block-start: 2rem;
+		}
+
+		.sub-levels {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0.5rem;
+			margin-block-start: 0.5rem;
+		}
+
+		.sub-level {
+			background: var(--gray-000);
+			border: 1px solid var(--gray-200);
+			border-radius: 0.25rem;
+			display: flex;
+			flex-direction: column;
+			gap: 0.75rem;
+			inline-size: 220px;
+			padding: 0.75rem;
+			text-align: left;
+
+			&:has(button:hover, button:active, button:focus) {
+				background: var(--indigo-100);
+			}
+
+			h3 {
+				font-family: mallory-medium;
+				font-size: 0.875rem;
+				line-height: 1.1;
+				margin-block: 0;
+			}
+
+			p {
+				font-size: 0.75rem;
+				margin-block: 0;
+			}
+
+			form {
+				margin-block-start: auto;
+			}
+
+			button {
+				background: var(--indigo-100);
+				border-color: var(--indigo-500);
+				margin-block-start: 0;
+
+				&:is(:hover, :active, :focus) {
+					background: var(--indigo-500);
+					color: var(--white);
+				}
+			}
+		}
 	}
 
 	.details {
